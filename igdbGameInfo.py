@@ -155,9 +155,15 @@ def update_progress_bar(progress_var, current, total):
 
 def on_search():
     def search_thread():
+        # Disable the buttons
+        search_button.config(state='disabled')
+        save_button.config(state='disabled')
+        
         game_title = entry.get().strip()
         if not game_title:
             messagebox.showwarning("Input Error", "Please enter a game title.")
+            search_button.config(state='normal')  # Re-enable buttons if input is invalid
+            save_button.config(state='normal')
             return
         
         game_data = get_all_game_data(game_title)  # Reuse your existing function
@@ -189,12 +195,21 @@ def on_search():
             messagebox.showinfo("No Results", "No data found for the specified game.")
         
         progress_var.set(0)  # Reset progress bar after completion
+        
+        # Re-enable the buttons
+        search_button.config(state='normal')
+        save_button.config(state='normal')
 
+    # Run the search in a new thread
     threading.Thread(target=search_thread, daemon=True).start()
 
 def on_save():
+    # Disable the save button while saving
+    save_button.config(state='disabled')
+
     if not games_list:
         messagebox.showwarning("Save Error", "No data available to save.")
+        save_button.config(state='normal')  # Re-enable the button if nothing to save
         return
 
     file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
@@ -206,6 +221,10 @@ def on_save():
         df.to_excel(file_path, index=False, engine='openpyxl')
         messagebox.showinfo("Saved", f"Data has been saved to {file_path}")
         progress_var.set(0)  # Reset progress bar
+
+    # Re-enable the save button after saving
+    save_button.config(state='normal')
+
 
 # Initialize the GUI
 root = tk.Tk()
