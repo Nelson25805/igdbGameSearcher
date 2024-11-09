@@ -1,8 +1,10 @@
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+import pandas as pd
 import os
 import requests
 import time
 from dotenv import load_dotenv
-import pandas as pd
 
 # Load environment variables from .env file
 load_dotenv()
@@ -10,7 +12,6 @@ load_dotenv()
 # Replace with environment variables
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-
 TOKEN_URL = 'https://id.twitch.tv/oauth2/token'
 IGDB_BASE_URL = 'https://api.igdb.com/v4'
 
@@ -22,15 +23,12 @@ params = {
 }
 
 response = requests.post(TOKEN_URL, params=params)
-
 if response.status_code == 200:
     ACCESS_TOKEN = response.json().get('access_token')
-    print(f"New Access Token: {ACCESS_TOKEN}")
 else:
     print(f"Error getting access token: {response.status_code} - {response.text}")
     exit()
 
-# Define HEADERS after getting the access token
 HEADERS = {
     'Client-ID': CLIENT_ID,
     'Authorization': f'Bearer {ACCESS_TOKEN}'
@@ -200,6 +198,75 @@ def main():
         print(f"Game data has been saved to '{filename}.xlsx'")
     else:
         print("No data to save.")
+
+
+
+games_list = []  # Combined list to store game information across searches
+
+def on_search():
+    game_title = entry.get().strip()
+    if not game_title:
+        messagebox.showwarning("Input Error", "Please enter a game title.")
+        return
+    
+    game_data = get_all_game_data(game_title)  # Reuse your existing function
+    if game_data:
+        for game in game_data:
+            game_name = game.get('name', 'Not Available')
+            release_date = format_unix_timestamp(game.get('first_release_date'))
+            rating = game.get('rating', 'Not Available')
+            genres = ', '.join(fetch_genre_names(game.get('genres', [])))
+            storyline = game.get('storyline', 'Not Available')
+            summary = game.get('summary', 'Not Available')
+            platforms = ', '.join(fetch_platform_names(game.get('platforms', [])))
+            cover_url = fetch_cover_image(game.get('cover'))
+            
+            games_list.append({
+                "Name": game_name,
+                "Release Date": release_date,
+                "Rating": rating,
+                "Genres": genres,
+                "Storyline": storyline,
+                "Summary": summary,
+                "Platforms": platforms,
+                "Cover URL": cover_url
+            })
+        messagebox.showinfo("Success", f"Game data for '{game_title}' has been fetched.")
+    else:
+        messagebox.showinfo("No Results", "No data found for the specified game.")
+
+def on_save():
+    if not games_list:
+        messagebox.showwarning("Save Error", "No data available to save.")
+        return
+
+    file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
+    if file_path:
+        df = pd.DataFrame(games_list)
+        df.to_excel(file_path, index=False, engine='openpyxl')
+        messagebox.showinfo("Saved", f"Data has been saved to {file_path}")
+
+# Initialize the GUI
+root = tk.Tk()
+root.title("Game Search Interface")
+
+frame = ttk.Frame(root, padding="10")
+frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+ttk.Label(frame, text="Enter game title:").grid(row=0, column=0, padx=5, pady=5)
+entry = ttk.Entry(frame, width=30)
+entry.grid(row=0, column=1, padx=5, pady=5)
+
+search_button = ttk.Button(frame, text="Search", command=on_search)
+search_button.grid(row=0, column=2, padx=5, pady=5)
+
+save_button = ttk.Button(frame, text="Save to Excel", command=on_save)
+save_button.grid(row=1, column=0, columnspan=3, pady=10)
+
+root.mainloop()
+
+
+
 
 if __name__ == "__main__":
     main()
