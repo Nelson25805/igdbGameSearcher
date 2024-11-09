@@ -5,6 +5,7 @@ import os
 import requests
 import time
 from dotenv import load_dotenv
+import threading
 
 # Load environment variables from .env file
 load_dotenv()
@@ -145,23 +146,23 @@ def get_all_game_data(game_title):
             #print(f"Cover URL: {cover_url}")
             #print("---")
 
-def main():
-    games_list = []  # Combined list to store game information across searches
 
-    while True:
-        # Prompt the user for a game title
-        game_title = input("Enter the name of the game you want to search for (or type 'exit' to finish): ")
+games_list = []  # Combined list to store game information across searches
+
+def update_progress_bar(progress_var, current, total):
+    progress_var.set((current / total) * 100)
+    root.update_idletasks()
+
+def on_search():
+    def search_thread():
+        game_title = entry.get().strip()
+        if not game_title:
+            messagebox.showwarning("Input Error", "Please enter a game title.")
+            return
         
-        if game_title.lower() == 'exit':
-            break
-        
-        # Fetch all game data
-        game_data = get_all_game_data(game_title)
-        
+        game_data = get_all_game_data(game_title)  # Reuse your existing function
         if game_data:
-            print(f"\nTotal results for '{game_title}': {len(game_data)}\n")
-            
-            for game in game_data:
+            for i, game in enumerate(game_data):
                 game_name = game.get('name', 'Not Available')
                 release_date = format_unix_timestamp(game.get('first_release_date'))
                 rating = game.get('rating', 'Not Available')
@@ -170,8 +171,7 @@ def main():
                 summary = game.get('summary', 'Not Available')
                 platforms = ', '.join(fetch_platform_names(game.get('platforms', [])))
                 cover_url = fetch_cover_image(game.get('cover'))
-
-                # Add the data to the list
+                
                 games_list.append({
                     "Name": game_name,
                     "Release Date": release_date,
@@ -182,58 +182,15 @@ def main():
                     "Platforms": platforms,
                     "Cover URL": cover_url
                 })
-
-        else:
-            print("No data found for the specified game.")
-
-    if games_list:
-        # Ask the user for the filename to save the Excel file
-        filename = input("Enter the name for the Excel file (without extension): ")
-        if not filename:
-            filename = "game_info"  # Default filename if none is provided
-        
-        # Save the data to an Excel file
-        df = pd.DataFrame(games_list)
-        df.to_excel(f"{filename}.xlsx", index=False, engine='openpyxl')
-        print(f"Game data has been saved to '{filename}.xlsx'")
-    else:
-        print("No data to save.")
-
-
-
-games_list = []  # Combined list to store game information across searches
-
-def on_search():
-    game_title = entry.get().strip()
-    if not game_title:
-        messagebox.showwarning("Input Error", "Please enter a game title.")
-        return
-    
-    game_data = get_all_game_data(game_title)  # Reuse your existing function
-    if game_data:
-        for game in game_data:
-            game_name = game.get('name', 'Not Available')
-            release_date = format_unix_timestamp(game.get('first_release_date'))
-            rating = game.get('rating', 'Not Available')
-            genres = ', '.join(fetch_genre_names(game.get('genres', [])))
-            storyline = game.get('storyline', 'Not Available')
-            summary = game.get('summary', 'Not Available')
-            platforms = ', '.join(fetch_platform_names(game.get('platforms', [])))
-            cover_url = fetch_cover_image(game.get('cover'))
+                update_progress_bar(progress_var, i + 1, len(game_data))
             
-            games_list.append({
-                "Name": game_name,
-                "Release Date": release_date,
-                "Rating": rating,
-                "Genres": genres,
-                "Storyline": storyline,
-                "Summary": summary,
-                "Platforms": platforms,
-                "Cover URL": cover_url
-            })
-        messagebox.showinfo("Success", f"Game data for '{game_title}' has been fetched.")
-    else:
-        messagebox.showinfo("No Results", "No data found for the specified game.")
+            messagebox.showinfo("Success", f"Game data for '{game_title}' has been fetched.")
+        else:
+            messagebox.showinfo("No Results", "No data found for the specified game.")
+        
+        progress_var.set(0)  # Reset progress bar after completion
+
+    threading.Thread(target=search_thread, daemon=True).start()
 
 def on_save():
     if not games_list:
@@ -243,8 +200,12 @@ def on_save():
     file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
     if file_path:
         df = pd.DataFrame(games_list)
+        for i in range(100):  # Simulate saving process with progress updates
+            update_progress_bar(progress_var, i + 1, 100)
+            time.sleep(0.01)  # Simulate processing delay
         df.to_excel(file_path, index=False, engine='openpyxl')
         messagebox.showinfo("Saved", f"Data has been saved to {file_path}")
+        progress_var.set(0)  # Reset progress bar
 
 # Initialize the GUI
 root = tk.Tk()
@@ -253,20 +214,18 @@ root.title("Game Search Interface")
 frame = ttk.Frame(root, padding="10")
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-ttk.Label(frame, text="Enter game title:").grid(row=0, column=0, padx=5, pady=5)
+progress_var = tk.DoubleVar()
+progress_bar = ttk.Progressbar(frame, variable=progress_var, maximum=100)
+progress_bar.grid(row=2, column=0, columnspan=3, pady=10, sticky=(tk.W, tk.E))
+
+# Widgets
+entry_label = ttk.Label(frame, text="Enter game title:")
+entry_label.grid(row=0, column=0, padx=5, pady=5)
 entry = ttk.Entry(frame, width=30)
 entry.grid(row=0, column=1, padx=5, pady=5)
-
 search_button = ttk.Button(frame, text="Search", command=on_search)
 search_button.grid(row=0, column=2, padx=5, pady=5)
-
 save_button = ttk.Button(frame, text="Save to Excel", command=on_save)
 save_button.grid(row=1, column=0, columnspan=3, pady=10)
 
 root.mainloop()
-
-
-
-
-if __name__ == "__main__":
-    main()
