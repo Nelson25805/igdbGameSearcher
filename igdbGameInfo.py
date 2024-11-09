@@ -134,19 +134,6 @@ def get_all_game_data(game_title):
     
     return all_game_data
 
-
-# Print game info (optional)
-            #print(f"Game Name: {game_name}")
-            #print(f"Release Date: {release_date}")
-            #print(f"Rating: {rating}")
-            #print(f"Genres: {genres}")
-            #print(f"Storyline: {storyline}")
-            #print(f"Summary: {summary}")
-            #print(f"Platforms: {platforms}")
-            #print(f"Cover URL: {cover_url}")
-            #print("---")
-
-
 games_list = []  # Combined list to store game information across searches
 
 def update_progress_bar(progress_var, current, total):
