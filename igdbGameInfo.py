@@ -135,30 +135,8 @@ def get_all_game_data(game_title):
     
     return all_game_data
 
-def main():
-    # Prompt the user for a game title
-    game_title = input("Enter the name of the game you want to search for: ")
 
-    # Fetch all game data
-    game_data = get_all_game_data(game_title)
-    
-    if game_data:
-        print(f"\nTotal results for '{game_title}': {len(game_data)}\n")
-        
-        # List to store game information
-        games_list = []
-
-        for game in game_data:
-            game_name = game.get('name', 'Not Available')
-            release_date = format_unix_timestamp(game.get('first_release_date'))
-            rating = game.get('rating', 'Not Available')
-            genres = ', '.join(fetch_genre_names(game.get('genres', [])))
-            storyline = game.get('storyline', 'Not Available')
-            summary = game.get('summary', 'Not Available')
-            platforms = ', '.join(fetch_platform_names(game.get('platforms', [])))
-            cover_url = fetch_cover_image(game.get('cover'))
-
-            # Print game info (optional)
+# Print game info (optional)
             #print(f"Game Name: {game_name}")
             #print(f"Release Date: {release_date}")
             #print(f"Rating: {rating}")
@@ -169,25 +147,59 @@ def main():
             #print(f"Cover URL: {cover_url}")
             #print("---")
 
-            # Add the data to the list
-            games_list.append({
-                "Name": game_name,
-                "Release Date": release_date,
-                "Rating": rating,
-                "Genres": genres,
-                "Storyline": storyline,
-                "Summary": summary,
-                "Platforms": platforms,
-                "Cover URL": cover_url
-            })
+def main():
+    games_list = []  # Combined list to store game information across searches
 
-        # Create a DataFrame and save it to an Excel file
+    while True:
+        # Prompt the user for a game title
+        game_title = input("Enter the name of the game you want to search for (or type 'exit' to finish): ")
+        
+        if game_title.lower() == 'exit':
+            break
+        
+        # Fetch all game data
+        game_data = get_all_game_data(game_title)
+        
+        if game_data:
+            print(f"\nTotal results for '{game_title}': {len(game_data)}\n")
+            
+            for game in game_data:
+                game_name = game.get('name', 'Not Available')
+                release_date = format_unix_timestamp(game.get('first_release_date'))
+                rating = game.get('rating', 'Not Available')
+                genres = ', '.join(fetch_genre_names(game.get('genres', [])))
+                storyline = game.get('storyline', 'Not Available')
+                summary = game.get('summary', 'Not Available')
+                platforms = ', '.join(fetch_platform_names(game.get('platforms', [])))
+                cover_url = fetch_cover_image(game.get('cover'))
+
+                # Add the data to the list
+                games_list.append({
+                    "Name": game_name,
+                    "Release Date": release_date,
+                    "Rating": rating,
+                    "Genres": genres,
+                    "Storyline": storyline,
+                    "Summary": summary,
+                    "Platforms": platforms,
+                    "Cover URL": cover_url
+                })
+
+        else:
+            print("No data found for the specified game.")
+
+    if games_list:
+        # Ask the user for the filename to save the Excel file
+        filename = input("Enter the name for the Excel file (without extension): ")
+        if not filename:
+            filename = "game_info"  # Default filename if none is provided
+        
+        # Save the data to an Excel file
         df = pd.DataFrame(games_list)
-        df.to_excel("game_info.xlsx", index=False, engine='openpyxl')
-        print("Game data has been saved to 'game_info.xlsx'")
-    
+        df.to_excel(f"{filename}.xlsx", index=False, engine='openpyxl')
+        print(f"Game data has been saved to '{filename}.xlsx'")
     else:
-        print("No data found for the specified game.")
+        print("No data to save.")
 
 if __name__ == "__main__":
     main()
