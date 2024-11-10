@@ -111,6 +111,15 @@ def get_game_data(access_token, client_id, query):
     else:
         print(f"Error fetching game data: {response.status_code} - {response.text}")
         return []
+    
+
+# Add a label for live count in the GUI
+def update_live_count_label(label):
+    """Continuously update the live count of unique games in a separate thread."""
+    while True:
+        # Update the live count label every 0.5 seconds
+        label.config(text=f"Unique Games Added: {len(existing_game_ids)}")
+        time.sleep(0.5)  # Update the label every half second
 
 def get_all_game_data(game_title):
     """Fetch all game data for the given game title, handling pagination if necessary."""
@@ -158,7 +167,6 @@ def on_search():
         
         game_data = get_all_game_data(game_title)  # Reuse your existing function
         if game_data:
-            
             for i, game in enumerate(game_data):
                 game_id = game.get('id')  # Get the game ID for uniqueness check
                 
@@ -251,5 +259,12 @@ search_button = ttk.Button(frame, text="Search", command=on_search)
 search_button.grid(row=0, column=2, padx=5, pady=5)
 save_button = ttk.Button(frame, text="Save to Excel", command=on_save)
 save_button.grid(row=1, column=0, columnspan=3, pady=10)
+
+# Live count label
+live_count_label = ttk.Label(frame, text="Unique Games Added: 0")
+live_count_label.grid(row=3, column=0, columnspan=3, pady=10)
+
+# Start the live count update in a separate thread
+threading.Thread(target=update_live_count_label, args=(live_count_label,), daemon=True).start()
 
 root.mainloop()
