@@ -136,6 +136,9 @@ def get_all_game_data(game_title):
 
 games_list = []  # Combined list to store game information across searches
 
+# Maintain a set of already added game IDs to avoid duplicates
+existing_game_ids = set()  # We won't store the IDs in games_list
+
 def update_progress_bar(progress_var, current, total):
     progress_var.set((current / total) * 100)
     root.update_idletasks()
@@ -155,7 +158,14 @@ def on_search():
         
         game_data = get_all_game_data(game_title)  # Reuse your existing function
         if game_data:
+            
             for i, game in enumerate(game_data):
+                game_id = game.get('id')  # Get the game ID for uniqueness check
+                
+                # Skip if the game ID is already in the list
+                if game_id in existing_game_ids:
+                    continue
+                
                 game_name = game.get('name', 'Not Available')
                 release_date = format_unix_timestamp(game.get('first_release_date'))
                 rating = game.get('rating', 'Not Available')
@@ -165,6 +175,7 @@ def on_search():
                 platforms = ', '.join(fetch_platform_names(game.get('platforms', [])))
                 cover_url = fetch_cover_image(game.get('cover'))
                 
+                # Add the game to the list (without the ID)
                 games_list.append({
                     "Name": game_name,
                     "Release Date": release_date,
@@ -175,6 +186,10 @@ def on_search():
                     "Platforms": platforms,
                     "Cover URL": cover_url
                 })
+                
+                # Update the set of existing game IDs
+                existing_game_ids.add(game_id)
+
                 update_progress_bar(progress_var, i + 1, len(game_data))
             
             messagebox.showinfo("Success", f"Game data for '{game_title}' has been fetched.")
@@ -189,6 +204,9 @@ def on_search():
 
     # Run the search in a new thread
     threading.Thread(target=search_thread, daemon=True).start()
+
+
+
 
 def on_save():
     # Disable the save button while saving
