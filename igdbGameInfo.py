@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, Listbox
 import pandas as pd
 import os
 import requests
@@ -154,26 +154,38 @@ def update_progress_bar(progress_var, current, total):
 
 def on_search():
     def search_thread():
-        # Disable the buttons
+        # Disable the buttons during the search
         search_button.config(state='disabled')
         save_button.config(state='disabled')
-        
-        game_title = entry.get().strip()
+
+        game_title = entry.get().strip().lower()  # Normalize case for consistency
         if not game_title:
             messagebox.showwarning("Input Error", "Please enter a game title.")
             search_button.config(state='normal')  # Re-enable buttons if input is invalid
             save_button.config(state='normal')
             return
-        
-        game_data = get_all_game_data(game_title)  # Reuse your existing function
+
+        # Check if the game title has already been searched
+        if game_title in searched_titles:
+            messagebox.showinfo("Duplicate Search", f"Search for '{game_title}' has already been done.")
+            search_button.config(state='normal')
+            save_button.config(state='normal')
+            return
+
+        # Add the game title to the Listbox and the set of searched titles
+        search_history_listbox.insert(tk.END, game_title)
+        searched_titles.add(game_title)
+
+        # Fetch the game data
+        game_data = get_all_game_data(game_title)
         if game_data:
             for i, game in enumerate(game_data):
                 game_id = game.get('id')  # Get the game ID for uniqueness check
-                
+
                 # Skip if the game ID is already in the list
                 if game_id in existing_game_ids:
                     continue
-                
+
                 game_name = game.get('name', 'Not Available')
                 release_date = format_unix_timestamp(game.get('first_release_date'))
                 rating = game.get('rating', 'Not Available')
@@ -182,7 +194,7 @@ def on_search():
                 summary = game.get('summary', 'Not Available')
                 platforms = ', '.join(fetch_platform_names(game.get('platforms', [])))
                 cover_url = fetch_cover_image(game.get('cover'))
-                
+
                 # Add the game to the list (without the ID)
                 games_list.append({
                     "Name": game_name,
@@ -194,19 +206,19 @@ def on_search():
                     "Platforms": platforms,
                     "Cover URL": cover_url
                 })
-                
+
                 # Update the set of existing game IDs
                 existing_game_ids.add(game_id)
 
                 update_progress_bar(progress_var, i + 1, len(game_data))
-            
+
             messagebox.showinfo("Success", f"Game data for '{game_title}' has been fetched.")
         else:
             messagebox.showinfo("No Results", "No data found for the specified game.")
-        
+
         progress_var.set(0)  # Reset progress bar after completion
-        
-        # Re-enable the buttons
+
+        # Re-enable the buttons after the search completes
         search_button.config(state='normal')
         save_button.config(state='normal')
 
@@ -245,6 +257,13 @@ root.title("Game Search Interface")
 
 frame = ttk.Frame(root, padding="10")
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+# Create and place a Listbox widget to display search history
+search_history_listbox = Listbox(root, height=10, width=50)
+search_history_listbox.grid(pady=10)
+
+# Set to keep track of searched game titles to avoid duplicates
+searched_titles = set()
 
 progress_var = tk.DoubleVar()
 progress_bar = ttk.Progressbar(frame, variable=progress_var, maximum=100)
