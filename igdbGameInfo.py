@@ -173,7 +173,7 @@ def on_search():
             return
 
         # Add the game title to the Listbox and the set of searched titles
-        search_history_listbox.insert(tk.END, game_title)
+        search_history_listbox.insert(0, game_title)
         searched_titles.add(game_title)
 
         # Fetch the game data
