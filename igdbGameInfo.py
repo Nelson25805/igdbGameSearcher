@@ -1,3 +1,10 @@
+# This python script is a GUI video game search engine interface from the IDGDB website database.
+# After searching for all the video games the user searched for, you have the option to save the searches in an excel file.
+# Each game has the name, release date, rating, genres, storyline, summary, platforms, cover url for its record.
+
+# Author: Nelson McFadyen
+# Last Updated: Nov,16,2024
+
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, Listbox
 import pandas as pd
@@ -10,7 +17,7 @@ import threading
 # Load environment variables from .env file
 load_dotenv()
 
-# Replace with environment variables
+# Enviorment variables for client, token, and url
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 TOKEN_URL = os.getenv('TOKEN_URL')
@@ -23,6 +30,7 @@ params = {
     'grant_type': 'client_credentials'
 }
 
+# Check for giving access token to user
 response = requests.post(TOKEN_URL, params=params)
 if response.status_code == 200:
     ACCESS_TOKEN = response.json().get('access_token')
@@ -30,13 +38,14 @@ else:
     print(f"Error getting access token: {response.status_code} - {response.text}")
     exit()
 
+# Authorization header for searches
 HEADERS = {
     'Client-ID': CLIENT_ID,
     'Authorization': f'Bearer {ACCESS_TOKEN}'
 }
 
+# Function to fetch data requests from IGDB API for game being searched
 def fetch_data(endpoint, fields):
-    """Fetch data from the IGDB API for the given endpoint."""
     response = requests.post(
         f"{IGDB_BASE_URL}/{endpoint}",
         headers=HEADERS,
@@ -48,8 +57,8 @@ def fetch_data(endpoint, fields):
         print(f"Error fetching data from {endpoint}: {response.status_code} - {response.text}")
         return []
 
+# Function to fwtch voer image url for given cover_id
 def fetch_cover_image(cover_id):
-    """Fetch the cover image URL for a given cover ID."""
     if not cover_id:
         return "No cover available"
     
@@ -69,38 +78,40 @@ def fetch_cover_image(cover_id):
         print(f"Error fetching cover data: {response.status_code} - {response.text}")
         return "Error fetching cover image"
 
-
+# Function to convert genre id's to given names
 def create_genre_map():
     genres = fetch_data('genres', 'id, name')
     return {genre['id']: genre['name'] for genre in genres}
 
+# Function to convert platform id's to given names
 def create_platform_map():
     platforms = fetch_data('platforms', 'id, name')
     return {platform['id']: platform['name'] for platform in platforms}
 
+# Constants for genre and platform maps
 GENRE_MAP = create_genre_map()
 PLATFORM_MAP = create_platform_map()
 
+# Function to fetch genre names 
 def fetch_genre_names(genre_ids):
-    """Convert genre IDs to human-readable names using the fetched GENRE_MAP."""
     if not genre_ids:
         return ["Not Available"]
     return [GENRE_MAP.get(genre_id, f"Unknown Genre {genre_id}") for genre_id in genre_ids]
 
+# Function to fetch platform names
 def fetch_platform_names(platform_ids):
-    """Convert platform IDs to human-readable names using the fetched PLATFORM_MAP."""
     if not platform_ids:
         return ["Not Available"]
     return [PLATFORM_MAP.get(platform_id, f"Unknown Platform {platform_id}") for platform_id in platform_ids]
 
+# Function to convert Unix timestamp to readable date format
 def format_unix_timestamp(timestamp):
-    """Convert a Unix timestamp to a human-readable date format."""
     if not timestamp:
         return "Not Available"
     return time.strftime('%Y-%m-%d', time.gmtime(timestamp))
 
+# Function to fetch game data from the IGDB API search query
 def get_game_data(access_token, client_id, query):
-    """Fetch game data from the IGDB API based on the search query."""
     response = requests.post(
         f"{IGDB_BASE_URL}/games",
         headers=HEADERS,
@@ -113,16 +124,15 @@ def get_game_data(access_token, client_id, query):
         return []
     
 
-# Add a label for live count in the GUI
+# Function to add live count label, and update it with the unique games in the list in a seperate thread.
 def update_live_count_label(label):
-    """Continuously update the live count of unique games in a separate thread."""
     while True:
         # Update the live count label every 0.5 seconds
         label.config(text=f"Unique Games Added: {len(existing_game_ids)}")
         time.sleep(0.5)  # Update the label every half second
 
+# Function to fetch all game data from the given game title from user
 def get_all_game_data(game_title):
-    """Fetch all game data for the given game title, handling pagination if necessary."""
     offset = 0
     all_game_data = []
     
@@ -148,10 +158,12 @@ games_list = []  # Combined list to store game information across searches
 # Maintain a set of already added game IDs to avoid duplicates
 existing_game_ids = set()  # We won't store the IDs in games_list
 
+# Function to update progress bar with length left of current task
 def update_progress_bar(progress_var, current, total):
     progress_var.set((current / total) * 100)
     root.update_idletasks()
 
+# Function to handle the main search thread for games user has entered
 def on_search():
     def search_thread():
         # Disable the buttons during the search
@@ -227,7 +239,7 @@ def on_search():
 
 
 
-
+# Function to handle excel save functionality
 def on_save():
     # Disable the save button while saving
     save_button.config(state='disabled')
@@ -253,7 +265,7 @@ def on_save():
 
 # Initialize the GUI
 root = tk.Tk()
-root.title("Game Search Interface")
+root.title("IGDB Game Searcher")
 
 frame = ttk.Frame(root, padding="10")
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
@@ -265,6 +277,7 @@ search_history_listbox.grid(pady=10)
 # Set to keep track of searched game titles to avoid duplicates
 searched_titles = set()
 
+# Progress bar 
 progress_var = tk.DoubleVar()
 progress_bar = ttk.Progressbar(frame, variable=progress_var, maximum=100)
 progress_bar.grid(row=2, column=0, columnspan=3, pady=10, sticky=(tk.W, tk.E))
@@ -286,4 +299,5 @@ live_count_label.grid(row=3, column=0, columnspan=3, pady=10)
 # Start the live count update in a separate thread
 threading.Thread(target=update_live_count_label, args=(live_count_label,), daemon=True).start()
 
+# Start main program
 root.mainloop()
