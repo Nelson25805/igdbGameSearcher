@@ -20,8 +20,8 @@ load_dotenv()
 # Enviorment variables for client, token, and url
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-TOKEN_URL = os.getenv('TOKEN_URL')
-IGDB_BASE_URL = os.getenv('IGDB_BASE_URL')
+TOKEN_URL = 'https://id.twitch.tv/oauth2/token'
+IGDB_BASE_URL = 'https://api.igdb.com/v4'
 
 # Get a new access token
 params = {
