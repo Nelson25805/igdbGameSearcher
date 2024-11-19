@@ -184,6 +184,7 @@ def get_all_game_data(game_title):
     return all_game_data
 
 games_list = []  # Combined list to store game information across searches
+listbox_count = 0 # Keep track of the amount of full searches done
 
 # Maintain a set of already added game IDs to avoid duplicates
 existing_game_ids = set()  # We won't store the IDs in games_list
@@ -196,6 +197,8 @@ def update_progress_bar(progress_var, current, total):
 # Function to handle the main search thread for games user has entered
 def on_search():
     def search_thread():
+        global listbox_count
+
         # Disable the buttons during the search
         search_button.config(state='disabled')
         save_button.config(state='disabled')
@@ -214,8 +217,9 @@ def on_search():
             save_button.config(state='normal')
             return
 
-        # Add the game title to the Listbox and the set of searched titles
-        search_history_listbox.insert(0, game_title)
+        # Add the listbox count, and add to listbox
+        listbox_count += 1
+        search_history_listbox.insert(0, f"{listbox_count}) {game_title}")
         searched_titles.add(game_title)
 
         # Fetch the game data
