@@ -32,10 +32,40 @@ params = {
 
 # Check for giving access token to user
 response = requests.post(TOKEN_URL, params=params)
+
 if response.status_code == 200:
     ACCESS_TOKEN = response.json().get('access_token')
 else:
     print(f"Error getting access token: {response.status_code} - {response.text}")
+
+    try:
+        # Parse response as JSON
+        error_info = response.json()
+        error_message = error_info.get('message', '')
+        print(error_info)
+        print(error_message)
+
+        # Check for specific error messages
+        if 'invalid' in error_message:
+            if 'secret' in error_message:
+                print('Your client secret code is invalid. Please correct it in your .env file.')
+            else:
+                print('Your client id code is invalid. Please correct it in your .env file.')
+        elif 'missing' in error_message:
+            if 'secret' in error_message:
+                print('You are missing the client secret code. Please add it to your .env file.')
+            else:
+                print('You are missing the client id code. Please add it to your .env file.')
+        else:
+            # General fallback for unexpected errors
+            print('An unexpected error occurred. Please review your .env configuration or API settings.')
+
+    except ValueError:
+        # Handle cases where the response is not valid JSON
+        print('The response format was not JSON. Here is the response body:')
+        print(response.text)
+
+    input('Press the enter key to end the program: ')
     exit()
 
 # Authorization header for searches
