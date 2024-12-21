@@ -6,7 +6,7 @@
 # Last Updated: Nov,16,2024
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, Listbox
+from tkinter import ttk, filedialog, messagebox, Listbox, PhotoImage
 import pandas as pd
 import os
 import requests
@@ -300,6 +300,10 @@ def on_save():
 # Initialize the GUI
 root = tk.Tk()
 root.title("IGDB Game Searcher")
+
+# Setting a custom icon
+icon = PhotoImage(file="images/controller.png")
+root.iconphoto(True, icon)
 
 frame = ttk.Frame(root, padding="10")
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
