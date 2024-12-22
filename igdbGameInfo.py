@@ -305,6 +305,9 @@ root.title("IGDB Game Searcher")
 icon = PhotoImage(file="images/controller.png")
 root.iconphoto(True, icon)
 
+# Disable resizing of window
+root.resizable(False,False)
+
 frame = ttk.Frame(root, padding="10")
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
