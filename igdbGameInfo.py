@@ -259,9 +259,11 @@ def on_search():
                 update_progress_bar(progress_var, i + 1, len(game_data))
 
             messagebox.showinfo("Success", f"Game data for '{game_title}' has been fetched.")
+
         else:
             messagebox.showinfo("No Results", "No data found for the specified game.")
 
+        entry.delete(0, tk.END)  # Clear textbox entry
         progress_var.set(0)  # Reset progress bar after completion
 
         # Re-enable the buttons after the search completes
