@@ -313,9 +313,24 @@ root.resizable(False,False)
 frame = ttk.Frame(root, padding="10")
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-# Create and place a Listbox widget to display search history
-search_history_listbox = Listbox(root, height=10, width=50)
-search_history_listbox.grid(pady=10)
+# Create a frame for the Listbox and Scrollbar
+listbox_frame = ttk.Frame(root)
+listbox_frame.grid(pady=10)
+
+# Create the Listbox widget
+search_history_listbox = Listbox(listbox_frame, height=10, width=50)
+search_history_listbox.grid(row=0, column=0, sticky='nsew')
+
+# Create a Scrollbar widget and connect it to the Listbox
+scrollbar = ttk.Scrollbar(listbox_frame, orient='vertical', command=search_history_listbox.yview)
+scrollbar.grid(row=0, column=1, sticky='ns')
+
+# Link the Scrollbar to the Listbox
+search_history_listbox.config(yscrollcommand=scrollbar.set)
+
+# Adjust the Listbox size to expand with the window
+listbox_frame.grid_rowconfigure(0, weight=1)
+listbox_frame.grid_columnconfigure(0, weight=1)
 
 # Set to keep track of searched game titles to avoid duplicates
 searched_titles = set()
