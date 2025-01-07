@@ -3,7 +3,7 @@
 # Each game has the name, release date, rating, genres, storyline, summary, platforms, cover url for its record.
 
 # Author: Nelson McFadyen
-# Last Updated: Nov,16,2024
+# Last Updated: Jan, 07,2025
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, Listbox, PhotoImage
@@ -356,6 +356,9 @@ live_count_label.grid(row=3, column=0, columnspan=3, pady=10)
 
 # Start the live count update in a separate thread
 threading.Thread(target=update_live_count_label, args=(live_count_label,), daemon=True).start()
+
+# Set focus on the entry widget
+entry.focus_set()
 
 # Start main program
 root.mainloop()
