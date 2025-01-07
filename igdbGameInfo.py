@@ -153,13 +153,11 @@ def get_game_data(access_token, client_id, query):
         print(f"Error fetching game data: {response.status_code} - {response.text}")
         return []
     
-
-# Function to add live count label, and update it with the unique games in the list in a seperate thread.
+# Function to add live count label, and update it with the unique games in the list
 def update_live_count_label(label):
-    while True:
-        # Update the live count label every 0.5 seconds
-        label.config(text=f"Unique Games Added: {len(existing_game_ids)}")
-        time.sleep(0.5)  # Update the label every half second
+    label.config(text=f"Unique Games Added: {len(existing_game_ids)}")
+    # Schedule the next update in 500 milliseconds (0.5 seconds)
+    root.after(500, update_live_count_label, label)
 
 # Function to fetch all game data from the given game title from user
 def get_all_game_data(game_title):
@@ -277,7 +275,17 @@ def on_search():
 
 # Function to handle excel save functionality
 def on_save():
-    # Disable the save button while saving
+    def simulate_save_progress(step=0):
+        if step <= 100:
+            update_progress_bar(progress_var, step, 100)
+            root.after(10, simulate_save_progress, step + 1)  # Schedule next step
+        else:
+            # Save data after progress simulation
+            df.to_excel(file_path, index=False, engine='openpyxl')
+            messagebox.showinfo("Saved", f"Data has been saved to {file_path}")
+            progress_var.set(0)  # Reset progress bar
+            save_button.config(state='normal')  # Re-enable the save button
+
     save_button.config(state='disabled')
 
     if not games_list:
@@ -288,16 +296,7 @@ def on_save():
     file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
     if file_path:
         df = pd.DataFrame(games_list)
-        for i in range(100):  # Simulate saving process with progress updates
-            update_progress_bar(progress_var, i + 1, 100)
-            time.sleep(0.01)  # Simulate processing delay
-        df.to_excel(file_path, index=False, engine='openpyxl')
-        messagebox.showinfo("Saved", f"Data has been saved to {file_path}")
-        progress_var.set(0)  # Reset progress bar
-
-    # Re-enable the save button after saving
-    save_button.config(state='normal')
-
+        simulate_save_progress()
 
 # Initialize the GUI
 root = tk.Tk()
