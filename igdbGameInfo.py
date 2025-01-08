@@ -23,6 +23,17 @@ CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 TOKEN_URL = 'https://id.twitch.tv/oauth2/token'
 IGDB_BASE_URL = 'https://api.igdb.com/v4'
 
+# Check if CLIENT_ID and CLIENT_SECRET are defined
+if not CLIENT_ID and not CLIENT_SECRET:
+    print('Error: Both the client ID and client secret are missing. Please add them to your .env file.')
+    exit()
+elif not CLIENT_ID:
+    print('Error: The client ID is missing. Please add it to your .env file.')
+    exit()
+elif not CLIENT_SECRET:
+    print('Error: The client secret is missing. Please add it to your .env file.')
+    exit()
+
 # Get a new access token
 params = {
     'client_id': CLIENT_ID,
@@ -30,42 +41,40 @@ params = {
     'grant_type': 'client_credentials'
 }
 
-# Check for giving access token to user
-response = requests.post(TOKEN_URL, params=params)
+try:
+    # Request a new access token
+    response = requests.post(TOKEN_URL, params=params)
 
-if response.status_code == 200:
-    ACCESS_TOKEN = response.json().get('access_token')
-else:
-    print(f"Error getting access token: {response.status_code} - {response.text}")
+    if response.status_code == 200:
+        ACCESS_TOKEN = response.json().get('access_token')
+    else:
+        # Attempt to parse the response JSON to extract error details
+        try:
+            error_info = response.json()
+            error_message = error_info.get('message', '')
 
-    try:
-        # Parse response as JSON
-        error_info = response.json()
-        error_message = error_info.get('message', '')
-        print(error_info)
-        print(error_message)
-
-        # Check for specific error messages
-        if 'invalid' in error_message:
-            if 'secret' in error_message:
-                print('Your client secret code is invalid. Please correct it in your .env file.')
+            # Handle specific error scenarios based on status codes and error message
+            if response.status_code == 400:
+                if 'invalid client' in error_message:
+                    print('Error: Your client ID is invalid or both the client ID and client secret are incorrect. Please correct them in your .env file.')
+            elif response.status_code == 403:
+                if 'invalid client secret' in error_message:
+                    print('Error: Your client secret is invalid. Please correct it in your .env file.')
             else:
-                print('Your client id code is invalid. Please correct it in your .env file.')
-        elif 'missing' in error_message:
-            if 'secret' in error_message:
-                print('You are missing the client secret code. Please add it to your .env file.')
-            else:
-                print('You are missing the client id code. Please add it to your .env file.')
-        else:
-            # General fallback for unexpected errors
-            print('An unexpected error occurred. Please review your .env configuration or API settings.')
+                # General fallback for unexpected errors
+                print(f"Unexpected error: {error_message}")
+        except ValueError:
+            # Handle cases where the response is not valid JSON
+            print('Error: The server response was not in JSON format.')
+            print(f"Response: {response.text}")
 
-    except ValueError:
-        # Handle cases where the response is not valid JSON
-        print('The response format was not JSON. Here is the response body:')
-        print(response.text)
+        print('Program terminating due to error.')
+        exit()
 
-    input('Press the enter key to end the program: ')
+except requests.exceptions.RequestException as e:
+    # Handle network-related exceptions
+    print(f"Network error occurred: {e}")
+    print('Please check your internet connection or API endpoint URL.')
     exit()
 
 # Authorization header for searches
