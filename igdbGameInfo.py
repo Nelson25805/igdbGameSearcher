@@ -14,6 +14,9 @@ import time
 from dotenv import load_dotenv
 import threading
 
+import ttkbootstrap as tb
+from ttkbootstrap.constants import *
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -308,7 +311,7 @@ def on_save():
         simulate_save_progress()
 
 # Initialize the GUI
-root = tk.Tk()
+root = tb.Window(themename="cyborg")
 root.title("IGDB Game Searcher")
 
 # Setting a custom icon
@@ -323,10 +326,10 @@ frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
 # Create a frame for the Listbox and Scrollbar
 listbox_frame = ttk.Frame(root)
-listbox_frame.grid(pady=10)
+listbox_frame.grid(row=1, column=0, padx=10, pady=10, sticky=(tk.S, tk.W))  # Bottom-left alignment
 
 # Create the Listbox widget
-search_history_listbox = Listbox(listbox_frame, height=10, width=50)
+search_history_listbox = Listbox(listbox_frame, height=10, width=20)
 search_history_listbox.grid(row=0, column=0, sticky='nsew')
 
 # Create a Scrollbar widget and connect it to the Listbox
