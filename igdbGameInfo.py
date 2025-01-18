@@ -14,8 +14,16 @@ import time
 from dotenv import load_dotenv
 import threading
 
+import random
+
+from datetime import datetime, timezone
+
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+
+
+from PIL import Image, ImageTk
+from io import BytesIO
 
 # Load environment variables from .env file
 load_dotenv()
@@ -321,6 +329,11 @@ root.iconphoto(True, icon)
 # Disable resizing of window
 root.resizable(False,False)
 
+# Configure columns for spacing
+root.columnconfigure(0, weight=1)  # Left side (search history listbox)
+root.columnconfigure(1, weight=1)  # Spacer column
+root.columnconfigure(2, weight=1)  # Middle (game details frame)
+
 frame = ttk.Frame(root, padding="10")
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
@@ -328,9 +341,9 @@ frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 listbox_frame = ttk.Frame(root)
 listbox_frame.grid(row=1, column=0, padx=10, pady=10, sticky=(tk.S, tk.W))  # Bottom-left alignment
 
-# Create the Listbox widget
-search_history_listbox = Listbox(listbox_frame, height=10, width=20)
-search_history_listbox.grid(row=0, column=0, sticky='nsew')
+# Search history listbox
+search_history_listbox = tk.Listbox(root)
+search_history_listbox.grid(row=1, column=0, padx=10, pady=10, sticky="nsw")  # Positioned on the left
 
 # Create a Scrollbar widget and connect it to the Listbox
 scrollbar = ttk.Scrollbar(listbox_frame, orient='vertical', command=search_history_listbox.yview)
@@ -370,6 +383,228 @@ threading.Thread(target=update_live_count_label, args=(live_count_label,), daemo
 
 # Set focus on the entry widget
 entry.focus_set()
+
+
+
+
+
+
+
+
+# Create a frame to hold the game details
+game_details_frame = ttk.Frame(root)
+game_details_frame.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+
+# Configure rows and columns in the frame
+game_details_frame.columnconfigure(1, weight=1)  # Allow textboxes to stretch
+
+# Game Name Label
+game_name_label = ttk.Label(game_details_frame, text="Game Name:", font=("Arial", 12, "bold"))
+game_name_label.grid(row=0, column=0, sticky="nw", pady=5)
+
+# Game Name Textbox with Scrollbar
+game_name_scrollbar = ttk.Scrollbar(game_details_frame, orient="vertical")
+game_name_text = tk.Text(game_details_frame, height=2, wrap="word", yscrollcommand=game_name_scrollbar.set)
+game_name_scrollbar.config(command=game_name_text.yview)
+game_name_text.grid(row=0, column=1, sticky="ew", padx=(5, 0))
+game_name_scrollbar.grid(row=0, column=2, sticky="ns")
+
+# Summary Label
+game_summary_label = ttk.Label(game_details_frame, text="Summary:", font=("Arial", 12, "bold"))
+game_summary_label.grid(row=1, column=0, sticky="nw", pady=5)
+
+# Summary Textbox with Scrollbar
+summary_scrollbar = ttk.Scrollbar(game_details_frame, orient="vertical")
+summary_text = tk.Text(game_details_frame, height=5, wrap="word", yscrollcommand=summary_scrollbar.set)
+summary_scrollbar.config(command=summary_text.yview)
+summary_text.grid(row=1, column=1, sticky="ew", padx=(5, 0))
+summary_scrollbar.grid(row=1, column=2, sticky="ns")
+
+# Platforms Label
+game_platforms_label = ttk.Label(game_details_frame, text="Platforms:", font=("Arial", 12, "bold"))
+game_platforms_label.grid(row=2, column=0, sticky="nw", pady=5)
+
+# Platforms Textbox with Scrollbar
+platforms_scrollbar = ttk.Scrollbar(game_details_frame, orient="vertical")
+platforms_text = tk.Text(game_details_frame, height=3, wrap="word", yscrollcommand=platforms_scrollbar.set)
+platforms_scrollbar.config(command=platforms_text.yview)
+platforms_text.grid(row=2, column=1, sticky="ew", padx=(5, 0))
+platforms_scrollbar.grid(row=2, column=2, sticky="ns")
+
+# Genres Label
+game_genres_label = ttk.Label(game_details_frame, text="Genres:", font=("Arial", 12, "bold"))
+game_genres_label.grid(row=3, column=0, sticky="nw", pady=5)
+
+# Genres Textbox with Scrollbar
+genres_scrollbar = ttk.Scrollbar(game_details_frame, orient="vertical")
+genres_text = tk.Text(game_details_frame, height=3, wrap="word", yscrollcommand=genres_scrollbar.set)
+genres_scrollbar.config(command=genres_text.yview)
+genres_text.grid(row=3, column=1, sticky="ew", padx=(5, 0))
+genres_scrollbar.grid(row=3, column=2, sticky="ns")
+
+# Release Dates Label
+game_release_dates_label = ttk.Label(game_details_frame, text="Release Dates:", font=("Arial", 12, "bold"))
+game_release_dates_label.grid(row=4, column=0, sticky="nw", pady=5)
+
+# Release Dates Textbox with Scrollbar
+release_dates_scrollbar = ttk.Scrollbar(game_details_frame, orient="vertical")
+release_dates_text = tk.Text(game_details_frame, height=3, wrap="word", yscrollcommand=release_dates_scrollbar.set)
+release_dates_scrollbar.config(command=release_dates_text.yview)
+release_dates_text.grid(row=4, column=1, sticky="ew", padx=(5, 0))
+release_dates_scrollbar.grid(row=4, column=2, sticky="ns")
+
+
+# Example of filling textboxes with server data
+def populate_game_details(game_data):
+    game_name_text.delete("1.0", "end")
+    summary_text.delete("1.0", "end")
+    platforms_text.delete("1.0", "end")
+    genres_text.delete("1.0", "end")
+    release_dates_text.delete("1.0", "end")
+
+    # Insert data into textboxes
+    game_name_text.insert("1.0", game_data.get("name", "No Information"))
+    summary_text.insert("1.0", game_data.get("summary", "No Information"))
+    platforms_text.insert("1.0", "\n".join(game_data.get("platforms", ["No Information"])))
+    genres_text.insert("1.0", "\n".join(game_data.get("genres", ["No Information"])))
+    release_dates_text.insert("1.0", "\n".join(game_data.get("release_dates", ["No Information"])))
+
+    # Disable editing for textboxes
+    for textbox in [game_name_text, summary_text, platforms_text, genres_text, release_dates_text]:
+        textbox.config(state="disabled")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Function to fetch the total number of games
+def get_total_games_count():
+    response = requests.post(
+        f"{IGDB_BASE_URL}/games/count",
+        headers=HEADERS,
+        data=""
+    )
+    if response.status_code == 200:
+        count_data = response.json()
+        return count_data.get('count', 0)
+    else:
+        print(f"Error fetching games count: {response.status_code} - {response.text}")
+        return 0
+
+# Function to fetch a random game based on the total countdef fetch_random_game_gui():
+def fetch_random_game_gui():
+    total_games = get_total_games_count()
+    if total_games == 0:
+        print("Unable to retrieve the total games count.")
+        return
+
+    # Clear the previous image
+    game_image_label.config(image="", text="No Image Available")
+    game_image_label.image = None  # Clear reference to the previous image
+
+    random_offset = random.randint(0, total_games - 1)
+    print(f"Fetching game at random offset: {random_offset}")
+    
+    response = requests.post(
+        f"{IGDB_BASE_URL}/games",
+        headers=HEADERS,
+        data=f"fields name, summary, release_dates.date, genres.name, platforms.name, cover.image_id; offset {random_offset}; limit 1;"
+    )
+    if response.status_code == 200:
+        game_data = response.json()
+        if game_data:
+            game = game_data[0]  # Get the first game from the response
+
+            # Extract data or fallback to "No Information"
+            game_name = game.get('name', 'No Information')
+            game_summary = game.get('summary', 'No Information')
+            game_platforms = ', '.join(platform['name'] for platform in game.get('platforms', [])) or 'No Information'
+            game_genres = ', '.join(genre['name'] for genre in game.get('genres', [])) or 'No Information'
+
+            # Convert release dates to human-readable format
+            release_dates_raw = game.get('release_dates', [])
+            if release_dates_raw:
+                readable_release_dates = []
+                for date_entry in release_dates_raw:
+                    unix_timestamp = date_entry.get('date')
+                    if unix_timestamp:
+                        readable_date = datetime.fromtimestamp(unix_timestamp, timezone.utc).strftime('%Y-%m-%d')
+                        readable_release_dates.append(readable_date)
+                game_release_dates = ', '.join(readable_release_dates) or 'No Information'
+            else:
+                game_release_dates = 'No Information'
+
+            # Update textboxes in the GUI
+            game_name_text.config(state="normal")
+            summary_text.config(state="normal")
+            platforms_text.config(state="normal")
+            genres_text.config(state="normal")
+            release_dates_text.config(state="normal")
+            
+            game_name_text.delete("1.0", "end")
+            summary_text.delete("1.0", "end")
+            platforms_text.delete("1.0", "end")
+            genres_text.delete("1.0", "end")
+            release_dates_text.delete("1.0", "end")
+
+            game_name_text.insert("1.0", game_name)
+            summary_text.insert("1.0", game_summary)
+            platforms_text.insert("1.0", game_platforms)
+            genres_text.insert("1.0", game_genres)
+            release_dates_text.insert("1.0", game_release_dates)
+
+            # Make textboxes read-only after updating
+            for textbox in [game_name_text, summary_text, platforms_text, genres_text, release_dates_text]:
+                textbox.config(state="disabled")
+            
+            # Fetch and display the game cover image
+            cover_image_id = game.get('cover', {}).get('image_id')
+            if cover_image_id:
+                image_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{cover_image_id}.jpg"
+                try:
+                    image_response = requests.get(image_url)
+                    if image_response.status_code == 200:
+                        image_data = Image.open(BytesIO(image_response.content))
+                        image_data = image_data.resize((300, 400))  # Resize image for larger display
+                        game_image = ImageTk.PhotoImage(image_data)
+                        game_image_label.config(image=game_image, text="")  # Clear placeholder text
+                        game_image_label.image = game_image  # Keep a reference to avoid garbage collection
+                    else:
+                        game_image_label.config(text="Image not available")
+                except Exception as e:
+                    print(f"Error loading image: {e}")
+                    game_image_label.config(text="Image not available")
+            else:
+                game_image_label.config(text="No Image Available")
+        else:
+            print("No game data found.")
+    else:
+        print(f"Error fetching random game: {response.status_code} - {response.text}")
+
+
+
+
+# Add a button to the GUI
+random_game_button = ttk.Button(frame, text="Random Game", command=fetch_random_game_gui)
+random_game_button.grid(row=5, column=0, pady=10)
+
+# Create a Label for the game image
+game_image_label = ttk.Label(game_details_frame, text="No Image Available", font=("Arial", 12, "italic"))
+game_image_label.grid(row=5, column=0, columnspan=3, pady=10)
+
+
+
+
+
 
 # Start main program
 root.mainloop()
