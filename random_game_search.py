@@ -9,24 +9,34 @@ from datetime import datetime, timezone
 
 import threading
 
+import webbrowser
+
 
 def open_random_game_search(root, previous_frame, shared_state, show_frame):
     # Create the random game search frame
-    random_game_search_frame = ttk.Frame(root, padding="10")
+    random_game_search_frame = ttk.Frame(root, padding="5")
 
     # Configure grid for layout
     random_game_search_frame.columnconfigure(0, weight=1)
-    random_game_search_frame.columnconfigure(1, weight=1)
+    random_game_search_frame.columnconfigure(1, weight=0)
+    random_game_search_frame.columnconfigure(2, weight=1)
     random_game_search_frame.rowconfigure(0, weight=0)  # Make sure row 0 (title row) doesn't stretch
-    random_game_search_frame.rowconfigure(1, weight=1)  # Other rows should be expandable
+    random_game_search_frame.rowconfigure(1, weight=0)  # Other rows should be expandable
+    
+    #random_game_search_frame.rowconfigure(1, weight=0)  # Make row 1 (image) fixed size
+    random_game_search_frame.rowconfigure(2, weight=1)  # Keep the game link row fixed size
+    random_game_search_frame.rowconfigure(3, weight=0)  # Allow content below to grow and fill space
+    
+
+    
 
     # Add title label at the top center
     title_label = ttk.Label(random_game_search_frame, text="Random Game Section", font=("Arial", 16, "bold"))
-    title_label.grid(row=0, column=0, columnspan=2, pady=10, sticky="n")
+    title_label.grid(row=0, column=0, columnspan=2, sticky="n")
 
     # Add components (e.g., details, image, buttons)
     details_frame = ttk.Frame(random_game_search_frame)
-    details_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+    details_frame.grid(row=1, column=0, sticky="nsew", padx=10)
 
     def add_detail_row(frame, row, label_text, height):
         label = ttk.Label(frame, text=label_text, font=("Arial", 12, "bold"))
@@ -55,20 +65,34 @@ def open_random_game_search(root, previous_frame, shared_state, show_frame):
 
     # Game Image
     game_image_label = ttk.Label(random_game_search_frame, text="No Image Available", font=("Arial", 12, "italic"))
-    game_image_label.grid(row=1, column=1, rowspan=5, sticky="nsew", padx=10, pady=10)
+    game_image_label.grid(row=1, column=2, sticky="nsew", padx=10, pady=(5, 10))  # Moved up with padding
 
     # Display placeholder image
     display_no_image(game_image_label)
 
+    # Create frame for the game link label (always visible)
+    url_frame = ttk.Frame(random_game_search_frame)
+    url_frame.grid(row=2, column=2, sticky="nsew", padx=10, pady=(0, 10))  # Placed directly below the image
+
+    # Always display the 'Game Link:' label
+    url_description_label = ttk.Label(url_frame, text="Game Link:", font=("Arial", 12, "bold"))
+    url_description_label.pack(anchor="w")
+
+    # Add the clickable URL label, starting with placeholder text
+    url_label = ttk.Label(url_frame, text="No link available", foreground="gray", cursor="arrow", font=("Arial", 12))
+    url_label.pack(anchor="w")
+
+    
+
     # Buttons at the bottom
     buttons_frame = ttk.Frame(random_game_search_frame)
-    buttons_frame.grid(row=6, column=0, columnspan=2, pady=10)
+    buttons_frame.grid(row=2, column=0)
 
     random_game_button = ttk.Button(buttons_frame, text="Fetch Random Game",
                                     command=lambda: fetch_random_game_gui(
                                         game_name_text, summary_text, platforms_text,
                                         genres_text, release_dates_text, game_image_label, 
-                                        random_game_button, back_button
+                                        random_game_button, back_button, url_label, random_game_search_frame
                                     ))
     random_game_button.pack(side="left", padx=10)
 
@@ -81,9 +105,8 @@ def open_random_game_search(root, previous_frame, shared_state, show_frame):
     show_frame(random_game_search_frame)
 
 
-
 def fetch_random_game_gui(game_name_text, summary_text, platforms_text, genres_text, release_dates_text, 
-                          game_image_label, random_game_button, back_button):
+                          game_image_label, random_game_button, back_button, url_label, random_game_search_frame):
     # Disable both buttons
     random_game_button.config(state='disabled')
     back_button.config(state='disabled')
@@ -101,13 +124,19 @@ def fetch_random_game_gui(game_name_text, summary_text, platforms_text, genres_t
             response = requests.post(
                 f"{random_game_api.IGDB_BASE_URL}/games",
                 headers=random_game_api.HEADERS,
-                data=f"fields name, summary, release_dates.date, genres.name, platforms.name, cover.image_id; offset {random_offset}; limit 1;"
+                data=f"fields name, summary, release_dates.date, genres.name, platforms.name, cover.image_id, slug; offset {random_offset}; limit 1;"
             )
 
             if response.status_code == 200:
                 game_data = response.json()[0]
-                populate_game_details(game_data, game_name_text, summary_text, platforms_text, genres_text, release_dates_text)
+                populate_game_details(game_data, game_name_text, summary_text, platforms_text, 
+                                      genres_text, release_dates_text, random_game_search_frame)
 
+                # Build the game URL
+                game_slug = game_data.get('slug')
+                game_url = f"https://www.igdb.com/games/{game_slug}" if game_slug else None
+
+                # Display the game image
                 cover_image_id = game_data.get('cover', {}).get('image_id')
                 if cover_image_id:
                     image_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{cover_image_id}.jpg"
@@ -122,11 +151,13 @@ def fetch_random_game_gui(game_name_text, summary_text, platforms_text, genres_t
                         display_no_image(game_image_label)
                 else:
                     display_no_image(game_image_label)
+
+                # Update the UI with the URL
+                update_game_url(url_label, game_url)
             else:
                 raise Exception(f"API call failed with status code {response.status_code}")
 
         except Exception as e:
-            # Display an error message or handle it
             print(f"Error: {e}")
 
         finally:
@@ -136,6 +167,24 @@ def fetch_random_game_gui(game_name_text, summary_text, platforms_text, genres_t
 
     # Start the fetch_data function in a new thread
     threading.Thread(target=fetch_data, daemon=True).start()
+
+
+def update_game_url(url_label, game_url):
+    """Update the game URL label with the clickable link or placeholder text."""
+    if game_url:
+        url_label.config(text="View Game on IGDB", foreground="blue", cursor="hand2")
+        url_label.bind("<Button-1>", lambda e: open_game_url(game_url))  # Bind click event to open the URL
+    else:
+        url_label.config(text="No link available", foreground="gray", cursor="arrow")
+
+
+def open_game_url(url):
+    """Open the game URL in the default web browser."""
+    import webbrowser
+    webbrowser.open(url)
+
+
+
 
 
 
@@ -175,7 +224,8 @@ def display_no_image(game_image_label):
     game_image_label.image = game_image
 
 
-def populate_game_details(game_data, game_name_text, summary_text, platforms_text, genres_text, release_dates_text):
+def populate_game_details(game_data, game_name_text, summary_text, platforms_text, 
+                          genres_text, release_dates_text, random_game_search_frame):
     # Helper function to populate textboxes with data
     game_name_text.config(state="normal")
     summary_text.config(state="normal")
@@ -200,8 +250,21 @@ def populate_game_details(game_data, game_name_text, summary_text, platforms_tex
         for date_entry in release_dates_raw if 'date' in date_entry) or "No Information"
     )
 
+    # Add a clickable game link
+    game_url = game_data.get('url')  # Ensure 'url' is returned by your API
+    print(game_url)
+    if game_url:
+        # Create a clickable label for the game URL
+        game_url_label = ttk.Label(random_game_search_frame, text="Visit Game Page", foreground="blue", cursor="hand2")
+        game_url_label.grid(row=6, column=0, columnspan=2)
+        game_url_label.bind("<Button-1>", lambda e: open_game_url(game_url))  # Bind click event to open the URL
+
     for textbox in [game_name_text, summary_text, platforms_text, genres_text, release_dates_text]:
         textbox.config(state="disabled")
+
+def open_game_url(url):
+    """Function to open the game page URL in a web browser."""
+    webbrowser.open(url)
 
 
 def get_total_games_count():
@@ -213,3 +276,5 @@ def get_total_games_count():
     if response.status_code == 200:
         return response.json().get('count', 0)
     return 0
+
+
