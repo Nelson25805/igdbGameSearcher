@@ -71,7 +71,9 @@ def show_frame(frame):
 root = tb.Window(themename="cyborg")
 root.title("Game Search Application")
 root.geometry("2300x1000")  # Set a consistent size for the window
-#root.geometry("2300x1400")
+
+# Disable maximize and minimize buttons
+root.resizable(False, False)  # Disable resizing
 
 # Create the splash screen
 create_splash_screen(root)
