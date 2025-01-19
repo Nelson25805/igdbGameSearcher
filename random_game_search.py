@@ -114,8 +114,6 @@ def fetch_random_game_gui(game_name_text, summary_text, platforms_text, genres_t
     # Function to run in a separate thread
     def fetch_data():
         try:
-            print("Random Game Button has been pressed.")
-            
             total_games = get_total_games_count()
             if total_games == 0:
                 raise Exception("No games found in the database.")
@@ -246,7 +244,7 @@ def populate_game_details(game_data, game_name_text, summary_text, platforms_tex
 
     release_dates_raw = game_data.get('release_dates', [])
     release_dates_text.insert("1.0", ', '.join(
-        datetime.fromtimestamp(date_entry['date'], timezone.utc).strftime('%Y-%m-%d')
+        datetime.fromtimestamp(date_entry['date'], timezone.utc).strftime('%d-%m-%Y')
         for date_entry in release_dates_raw if 'date' in date_entry) or "No Information"
     )
 
