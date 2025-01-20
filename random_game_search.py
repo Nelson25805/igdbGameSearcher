@@ -204,7 +204,7 @@ def display_no_image(game_image_label):
     # Draw "No Image Available" text
     draw = ImageDraw.Draw(placeholder_image)
     text = "No Image Available"
-    font = ImageFont.load_default()  # Default font
+    font = ImageFont.truetype("arial.ttf", 40)
 
     # Calculate text position for centering
     text_bbox = draw.textbbox((0, 0), text, font=font)  # Get text dimensions
