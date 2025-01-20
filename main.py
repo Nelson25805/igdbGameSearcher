@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from random_game_search import open_random_game_search
+from game_search import open_game_search
 
 import ttkbootstrap as tb
 
@@ -26,8 +27,8 @@ def show_main_screen(root, splash_frame):
     random_game_button.pack(padx=30, pady=10)
 
     state_button = ttk.Button(
-        main_frame, text="Show Shared State",
-        command=lambda: print(shared_state)
+        main_frame, text="Game Searcher",
+        command=lambda: open_game_search(root, main_frame, shared_state, show_frame)
     )
     state_button.pack(padx=30, pady=10)
 
