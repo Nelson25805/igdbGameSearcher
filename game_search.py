@@ -324,20 +324,25 @@ def open_game_search(root, previous_frame, shared_state, show_frame):
 
     # Progress bar
     progress_var = tk.DoubleVar()
-    progress_bar = ttk.Progressbar(game_search_frame, variable=progress_var, maximum=100, length=100)  # Adjusted length
-    progress_bar.grid(row=5, column=0, pady=10)
+    progress_bar = ttk.Progressbar(game_search_frame, variable=progress_var, maximum=100, length=500)  # Adjusted length
+    progress_bar.grid(row=3, column=2, pady=10)
 
     # Live count label
     live_count_label = ttk.Label(game_search_frame, text="Unique Games Added: 0")
-    live_count_label.grid(row=6, column=0, columnspan=2, pady=10)
+    live_count_label.grid(row=2, column=2, columnspan=2, pady=10)
 
-    # Search history listbox and scrollbar in the right column
-    search_history_listbox = tk.Listbox(game_search_frame, height=10, width=50)
-    search_history_listbox.grid(row=2, rowspan=5, column=2, padx=10, pady=10)
+        # Search history listbox and scrollbar in the right column
+    search_history_frame = ttk.Frame(game_search_frame)
+    search_history_frame.grid(row=4, rowspan=5, column=2, padx=10, pady=10, sticky="nsew")
 
-    scrollbar = ttk.Scrollbar(game_search_frame, orient="vertical", command=search_history_listbox.yview)
-    scrollbar.grid(row=2, rowspan=5, column=2, padx=(0, 10), pady=10, sticky="e")
+    search_history_listbox = tk.Listbox(search_history_frame, height=10, width=20)
+    search_history_listbox.pack(side="left", fill="both", expand=True)
+
+    scrollbar = ttk.Scrollbar(search_history_frame, orient="vertical", command=search_history_listbox.yview)
+    scrollbar.pack(side="right", fill="y")
+
     search_history_listbox.config(yscrollcommand=scrollbar.set)
+
 
     # Back button
     back_button = ttk.Button(game_search_frame, text="Back", command=lambda: show_frame(previous_frame))
