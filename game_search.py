@@ -93,17 +93,20 @@ def format_unix_timestamp(timestamp):
     return time.strftime('%Y-%m-%d', time.gmtime(timestamp))
 
 # Function to fetch game data from the IGDB API search query
-def get_game_data(access_token, client_id, query):
-    response = requests.post(
-        f"{random_game_api.IGDB_BASE_URL}/games",
-        headers=random_game_api.HEADERS,
-        data=query
-    )
+def get_game_data(api_token, client_id, query, endpoint="games"):
+    url = f"https://api.igdb.com/v4/{endpoint}"  # Default to 'games' endpoint
+    headers = {
+        "Client-ID": client_id,
+        "Authorization": f"Bearer {api_token}",
+    }
+    response = requests.post(url, headers=headers, data=query)
+    
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"Error fetching game data: {response.status_code} - {response.text}")
+        print(f"Error: {response.status_code}, {response.text}")
         return []
+
     
 # Function to add live count label, and update it with the unique games in the list
 def update_live_count_label(label, root):
@@ -145,95 +148,147 @@ def update_progress_bar(progress_var, step, total_steps, root):
     progress = (step / total_steps) * 100
     progress_var.set(progress)
     root.update_idletasks()  # Ensures the UI updates in real-time
+    
+    
+# Function to create genre checkboxes and capture selected genres
+def create_genre_checkbox_frame(parent, genre_list):
+    genre_frame = ttk.Frame(parent)
+    genre_frame.grid(row=5, column=0, columnspan=3, padx=10, pady=5, sticky="w")
+
+    genre_vars = {}  # Dictionary to hold the Tkinter variables for the checkboxes
+    for idx, genre in enumerate(genre_list):
+        genre_var = tk.BooleanVar()  # Tkinter variable to hold checkbox state (True/False)
+        genre_vars[genre] = genre_var
+        checkbox = ttk.Checkbutton(genre_frame, text=genre, variable=genre_var)
+        checkbox.grid(row=idx // 3, column=idx % 3, sticky="w", padx=5, pady=2)  # 3 columns layout
+    return genre_vars
+
+# Fetch all available genres from the API (assuming you can get all genres in one request)
+def fetch_all_genres(api_token, client_id):
+    query = "fields name, id;"  # Query only genre fields (name and id)
+    response = get_game_data(api_token, client_id, query, endpoint="genres")  # Specify 'genres' as the endpoint
+    
+    print(response)  # Debug: Check the structure of the response
+    
+    # Process response correctly
+    if isinstance(response, list):
+        genres = response
+    else:
+        genres = response.get('data', [])
+    
+    # Create a dictionary mapping genre names to IDs
+    genre_name_to_id = {genre['name']: genre['id'] for genre in genres}
+    print(f"Available Genres: {genre_name_to_id}")  # Debug output
+    
+    return genre_name_to_id
+
+
+
+# Fetch the genres when the program starts
+genre_name_to_id = fetch_all_genres(random_game_api.ACCESS_TOKEN, random_game_api.CLIENT_ID)
+
+# Update your function to dynamically retrieve genre IDs
+def get_selected_genre_ids(genre_vars):
+    selected_ids = [
+        genre_name_to_id[genre_name] for genre_name, var in genre_vars.items() if var.get() and genre_name in genre_name_to_id
+    ]
+    print(f"Selected Genre IDs: {selected_ids}")  # Debug output to check selected IDs
+    return selected_ids
+
+
+
+
 
 # Function to handle the main search thread for games user has entered
-def on_search(search_button, save_button, entry, search_history_listbox, searched_titles, progress_var, live_count_label, root):
+def on_search(search_button, save_button, entry, search_history_listbox, searched_titles, progress_var, live_count_label, root, genre_vars):
     def search_thread():
         global listbox_count
 
-        # Disable the buttons during the search
+        # Disable buttons during the search
         search_button.config(state='disabled')
         save_button.config(state='disabled')
 
-        game_title = entry.get().strip().lower()  # Normalize case for consistency
+        game_title = entry.get().strip().lower()
         if not game_title:
             messagebox.showwarning("Input Error", "Please enter a game title.")
-            search_button.config(state='normal')  # Re-enable buttons if input is invalid
+            search_button.config(state='normal')
             save_button.config(state='normal')
             return
 
-        # Check if the game title has already been searched
         if game_title in searched_titles:
             messagebox.showinfo("Duplicate Search", f"Search for '{game_title}' has already been done.")
             search_button.config(state='normal')
             save_button.config(state='normal')
             return
 
-        # Add the listbox count, and add to listbox
+        selected_genre_ids = get_selected_genre_ids(genre_vars)
+        query = f"fields name, first_release_date, rating, genres, storyline, summary, platforms, cover; search \"{game_title}\"; limit 500;"
+        game_data = get_game_data(random_game_api.ACCESS_TOKEN, random_game_api.CLIENT_ID, query)
+
+        if not game_data:
+            messagebox.showinfo("No Results", "No data found for the specified game.")
+            search_button.config(state='normal')
+            save_button.config(state='normal')
+            return
+
+        filtered_game_data = [
+            game for game in game_data
+            if not selected_genre_ids or any(genre_id in selected_genre_ids for genre_id in game.get('genres', []))
+        ]
+
+        if not filtered_game_data:
+            messagebox.showinfo("No Results", "No games match the selected genres.")
+            search_button.config(state='normal')
+            save_button.config(state='normal')
+            return
+
+        # Progress bar variables
+        total_steps = len(filtered_game_data)
+        step = 0
+
         listbox_count += 1
         search_history_listbox.insert(0, f"{listbox_count}) {game_title}")
         searched_titles.add(game_title)
 
-        # Fetch the game data
-        game_data = get_all_game_data(game_title)
-        if game_data:
-            for i, game in enumerate(game_data):
-                game_id = game.get('id')  # Get the game ID for uniqueness check
+        for game in filtered_game_data:
+            step += 1
 
-                # Skip if the game ID is already in the list
-                if game_id in existing_game_ids:
-                    continue
+            # Progress bar update
+            update_progress_bar(progress_var, step, total_steps, root)
 
-                game_name = game.get('name', 'Not Available')
-                release_date = format_unix_timestamp(game.get('first_release_date'))
-                rating = game.get('rating', 'Not Available')
-                genres = ', '.join(fetch_genre_names(game.get('genres', [])))
-                storyline = game.get('storyline', 'Not Available')
-                summary = game.get('summary', 'Not Available')
-                platforms = ', '.join(fetch_platform_names(game.get('platforms', [])))
-                cover_url = fetch_cover_image(game.get('cover'))
+            game_id = game.get('id')
+            if game_id in existing_game_ids:
+                continue
 
-                # Add the game to the list (without the ID)
-                games_list.append({
-                    "Name": game_name,
-                    "Release Date": release_date,
-                    "Rating": rating,
-                    "Genres": genres,
-                    "Storyline": storyline,
-                    "Summary": summary,
-                    "Platforms": platforms,
-                    "Cover URL": cover_url
-                })
+            games_list.append({
+                "Name": game.get('name', 'Not Available'),
+                "Release Date": format_unix_timestamp(game.get('first_release_date')),
+                "Rating": game.get('rating', 'Not Available'),
+                "Genres": ', '.join(fetch_genre_names(game.get('genres', []))),
+                "Storyline": game.get('storyline', 'Not Available'),
+                "Summary": game.get('summary', 'Not Available'),
+                "Platforms": ', '.join(fetch_platform_names(game.get('platforms', []))),
+                "Cover URL": fetch_cover_image(game.get('cover'))
+            })
 
-                # Update the set of existing game IDs
-                existing_game_ids.add(game_id)
+            existing_game_ids.add(game_id)
 
-                # Update the unique games counter label
-                live_count_label.config(text=f"Unique Games Added: {len(existing_game_ids)}")
-                root.update_idletasks()
+            # Update the live count label
+            live_count_label.config(text=f"Unique Games Added: {len(existing_game_ids)}")
+            root.update_idletasks()
 
-                update_progress_bar(progress_var, i + 1, len(game_data), root)
+        progress_var.set(0)  # Reset progress bar
+        messagebox.showinfo("Success", f"Game data for '{game_title}' has been fetched.")
+        entry.delete(0, tk.END)
 
-            messagebox.showinfo("Success", f"Game data for '{game_title}' has been fetched.")
-
-        else:
-            messagebox.showinfo("No Results", "No data found for the specified game.")
-
-        entry.delete(0, tk.END)  # Clear textbox entry
-        progress_var.set(0)  # Reset progress bar after completion
-
-        # Re-enable the buttons after the search completes
         search_button.config(state='normal')
         save_button.config(state='normal')
 
-    # Run the search in a new thread
     threading.Thread(target=search_thread, daemon=True).start()
 
-# def simulate_save_progress(progress_var, save_button, root):
-#     """Simulates the progress of saving the file."""
-#     for step in range(1, 101):  # Simulate a save process with 100 steps
-#         time.sleep(0.01)  # Simulate some delay for saving
-#         update_progress_bar(progress_var, step, 100, root)  # Pass the root argument
+
+
+
 
 
 def save_to_excel_file(games_list):
@@ -292,6 +347,9 @@ def on_save(progress_var, save_button, root, games_list):
         messagebox.showerror("Error", f"An error occurred while saving: {str(e)}")
 
 
+
+
+
         
 # In the open_game_search function, pass progress_var to on_search
 def open_game_search(root, previous_frame, shared_state, show_frame):
@@ -309,10 +367,14 @@ def open_game_search(root, previous_frame, shared_state, show_frame):
     entry = ttk.Entry(game_search_frame, width=40)
     entry.grid(row=1, column=1, padx=5, pady=5, sticky="w")  # No horizontal padding
 
-    # Connect the search button to the on_search function, pass progress_var
+    # Genre list (replace with actual genre list)
+    genre_list = list(GENRE_MAP.values())  # Assuming GENRE_MAP holds genre names
+    genre_vars = create_genre_checkbox_frame(game_search_frame, genre_list)
+
+    # Search button and save button
     search_button = ttk.Button(game_search_frame, text="Search", command=lambda: on_search(
         search_button, save_button, entry, search_history_listbox, searched_titles, 
-        progress_var, live_count_label, root))
+        progress_var, live_count_label, root, genre_vars))
 
     search_button.grid(row=3, column=0, padx=5, pady=5, sticky="e")
 
@@ -320,8 +382,6 @@ def open_game_search(root, previous_frame, shared_state, show_frame):
                                                                                             save_button, root, games_list))
     save_button.grid(row=4, column=0, padx=5, pady=5, sticky="w")
     
-    
-
     # Progress bar
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(game_search_frame, variable=progress_var, maximum=100, length=500)  # Adjusted length
@@ -331,7 +391,7 @@ def open_game_search(root, previous_frame, shared_state, show_frame):
     live_count_label = ttk.Label(game_search_frame, text="Unique Games Added: 0")
     live_count_label.grid(row=2, column=2, columnspan=2, pady=10)
 
-        # Search history listbox and scrollbar in the right column
+    # Search history listbox and scrollbar in the right column
     search_history_frame = ttk.Frame(game_search_frame)
     search_history_frame.grid(row=4, rowspan=5, column=2, padx=10, pady=10, sticky="nsew")
 
@@ -343,7 +403,6 @@ def open_game_search(root, previous_frame, shared_state, show_frame):
 
     search_history_listbox.config(yscrollcommand=scrollbar.set)
 
-
     # Back button
     back_button = ttk.Button(game_search_frame, text="Back", command=lambda: show_frame(previous_frame))
     back_button.grid(row=7, column=0, columnspan=2, pady=10)
@@ -353,7 +412,6 @@ def open_game_search(root, previous_frame, shared_state, show_frame):
 
     # Show the new frame
     show_frame(game_search_frame)
-
 
     # Start main program
     root.mainloop()
