@@ -22,15 +22,14 @@ from ttkbootstrap.constants import *
 
 from PIL import Image, ImageTk
 from io import BytesIO
-
-from api import random_game_api
+import api
 
 
 # Function to fetch data requests from IGDB API for game being searched
 def fetch_data(endpoint, fields):
     response = requests.post(
-        f"{random_game_api.IGDB_BASE_URL}/{endpoint}",
-        headers=random_game_api.HEADERS,
+        f"{api.IGDB_BASE_URL}/{endpoint}",
+        headers=api.HEADERS,
         data=f"fields {fields}; limit 500;"
     )
     if response.status_code == 200:
@@ -45,8 +44,8 @@ def fetch_cover_image(cover_id):
         return "No cover available"
     
     response = requests.post(
-        f"{random_game_api.IGDB_BASE_URL}/covers",
-        headers=random_game_api.HEADERS,
+        f"{api.IGDB_BASE_URL}/covers",
+        headers=api.HEADERS,
         data=f"fields image_id; where id = {cover_id};"
     )
     if response.status_code == 200:
@@ -122,7 +121,7 @@ def get_all_game_data(game_title):
     while True:
         # Construct the query with offset and limit of 500
         query = f"fields name, first_release_date, rating, genres, storyline, summary, platforms, cover; search \"{game_title}\"; limit 500; offset {offset};"
-        game_data = get_game_data(random_game_api.ACCESS_TOKEN, random_game_api.CLIENT_ID, query)
+        game_data = get_game_data(api.ACCESS_TOKEN, api.CLIENT_ID, query)
         
         if not game_data:
             break  # Exit loop if no more data is returned
@@ -165,27 +164,31 @@ def create_genre_checkbox_frame(parent, genre_list):
 
 # Fetch all available genres from the API (assuming you can get all genres in one request)
 def fetch_all_genres(api_token, client_id):
-    query = "fields name, id;"  # Query only genre fields (name and id)
-    response = get_game_data(api_token, client_id, query, endpoint="genres")  # Specify 'genres' as the endpoint
+    genre_name_to_id = {}
+    offset = 0
+    limit = 100  # Set a higher limit if needed, depending on the API behavior
     
-    print(response)  # Debug: Check the structure of the response
-    
-    # Process response correctly
-    if isinstance(response, list):
-        genres = response
-    else:
-        genres = response.get('data', [])
-    
-    # Create a dictionary mapping genre names to IDs
-    genre_name_to_id = {genre['name']: genre['id'] for genre in genres}
-    print(f"Available Genres: {genre_name_to_id}")  # Debug output
+    while True:
+        query = f"fields name, id; limit {limit}; offset {offset};"  # Query for genre name and id
+        response = get_game_data(api_token, client_id, query, endpoint="genres")
+        if not response:
+            break
+        for genre in response:
+            genre_name_to_id[genre['name']] = genre['id']
+        
+        # If the number of genres is less than the limit, we've reached the end
+        if len(response) < limit:
+            break
+        
+        offset += limit  # Update offset to fetch the next set of genres
     
     return genre_name_to_id
 
 
 
+
 # Fetch the genres when the program starts
-genre_name_to_id = fetch_all_genres(random_game_api.ACCESS_TOKEN, random_game_api.CLIENT_ID)
+genre_name_to_id = fetch_all_genres(api.ACCESS_TOKEN, api.CLIENT_ID)
 
 # Update your function to dynamically retrieve genre IDs
 def get_selected_genre_ids(genre_vars):
@@ -223,7 +226,7 @@ def on_search(search_button, save_button, entry, search_history_listbox, searche
 
         selected_genre_ids = get_selected_genre_ids(genre_vars)
         query = f"fields name, first_release_date, rating, genres, storyline, summary, platforms, cover; search \"{game_title}\"; limit 500;"
-        game_data = get_game_data(random_game_api.ACCESS_TOKEN, random_game_api.CLIENT_ID, query)
+        game_data = get_game_data(api.ACCESS_TOKEN, api.CLIENT_ID, query)
 
         if not game_data:
             messagebox.showinfo("No Results", "No data found for the specified game.")
