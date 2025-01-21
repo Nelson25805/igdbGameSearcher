@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 from io import BytesIO
-from api import random_game_api
+import api
 import requests
 import random
 from datetime import datetime, timezone
@@ -120,8 +120,8 @@ def fetch_random_game_gui(game_name_text, summary_text, platforms_text, genres_t
 
             random_offset = random.randint(0, total_games - 1)
             response = requests.post(
-                f"{random_game_api.IGDB_BASE_URL}/games",
-                headers=random_game_api.HEADERS,
+                f"{api.IGDB_BASE_URL}/games",
+                headers=api.HEADERS,
                 data=f"fields name, summary, release_dates.date, genres.name, platforms.name, cover.image_id, slug; offset {random_offset}; limit 1;"
             )
 
@@ -267,8 +267,8 @@ def open_game_url(url):
 
 def get_total_games_count():
     response = requests.post(
-        f"{random_game_api.IGDB_BASE_URL}/games/count",
-        headers=random_game_api.HEADERS,
+        f"{api.IGDB_BASE_URL}/games/count",
+        headers=api.HEADERS,
         data=""
     )
     if response.status_code == 200:
