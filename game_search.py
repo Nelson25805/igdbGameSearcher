@@ -6,22 +6,13 @@
 # Last Updated: Jan, 07,2025
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, Listbox, PhotoImage
+from tkinter import ttk, filedialog, messagebox
 import pandas as pd
-import os
 import requests
 import time
-from dotenv import load_dotenv
 import threading
-
-from datetime import datetime, timezone
-
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-
-
-from PIL import Image, ImageTk
-from io import BytesIO
 import api
 
 
@@ -89,7 +80,7 @@ def fetch_platform_names(platform_ids):
 def format_unix_timestamp(timestamp):
     if not timestamp:
         return "Not Available"
-    return time.strftime('%Y-%m-%d', time.gmtime(timestamp))
+    return time.strftime('%d-%m-%Y', time.gmtime(timestamp))
 
 # Function to fetch game data from the IGDB API search query
 def get_game_data(api_token, client_id, query, endpoint="games"):
@@ -186,7 +177,6 @@ def fetch_all_genres(api_token, client_id):
 
 
 
-
 # Fetch the genres when the program starts
 genre_name_to_id = fetch_all_genres(api.ACCESS_TOKEN, api.CLIENT_ID)
 
@@ -195,10 +185,7 @@ def get_selected_genre_ids(genre_vars):
     selected_ids = [
         genre_name_to_id[genre_name] for genre_name, var in genre_vars.items() if var.get() and genre_name in genre_name_to_id
     ]
-    print(f"Selected Genre IDs: {selected_ids}")  # Debug output to check selected IDs
     return selected_ids
-
-
 
 
 
@@ -291,38 +278,6 @@ def on_search(search_button, save_button, entry, search_history_listbox, searche
 
 
 
-
-
-
-def save_to_excel_file(games_list):
-    """
-    Saves the games_list data to an Excel file.
-    Asks the user for a file name and location using a save file dialog.
-    """
-    # Prompt the user to choose a save location and file name
-    file_path = filedialog.asksaveasfilename(
-        defaultextension=".xlsx",
-        filetypes=[("Excel Files", "*.xlsx"), ("All Files", "*.*")],
-        title="Save Game Data as Excel File"
-    )
-    
-    if not file_path:
-        # User canceled the save dialog
-        return
-
-    # Create a DataFrame from games_list (replace with your actual data structure)
-    df = pd.DataFrame(games_list)
-
-    # Save the DataFrame to the chosen file path
-    try:
-        df.to_excel(file_path, index=False)
-        print(f"Data successfully saved to {file_path}.")
-    except Exception as e:
-        print(f"Error saving file: {e}")
-        raise
-
-
-
 # Function to handle excel save functionality
 def on_save(progress_var, save_button, root, games_list):
     """Save games_list to an Excel file."""
@@ -339,8 +294,6 @@ def on_save(progress_var, save_button, root, games_list):
         messagebox.showinfo("Cancelled", "Save operation was cancelled.")
         return
 
-    #simulate_save_progress(progress_var, save_button, root)
-
     # Save games_list to Excel
     df = pd.DataFrame(games_list)
     try:
@@ -348,9 +301,6 @@ def on_save(progress_var, save_button, root, games_list):
         messagebox.showinfo("Success", f"File saved successfully to {file_path}")
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while saving: {str(e)}")
-
-
-
 
 
         
