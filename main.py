@@ -71,6 +71,7 @@ def show_frame(frame):
 # Initialize the root window
 root = tb.Window(themename="cyborg")
 root.title("Game Search Application")
+root.iconbitmap("images/controller.ico")
 root.geometry("2300x1000")  # Set a consistent size for the window
 
 # Disable maximize and minimize buttons
