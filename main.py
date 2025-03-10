@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import sys, os
 from random_game_search import open_random_game_search
 from game_search import open_game_search
 
@@ -7,6 +8,13 @@ import ttkbootstrap as tb
 
 # Shared state between modules
 shared_state = {}
+
+def resource_path(relative_path):
+    """Get the absolute path for PyInstaller bundled files."""
+    if getattr(sys, '_MEIPASS', False):
+        # Running from the PyInstaller bundle
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 def show_main_screen(root, splash_frame):
     # Hide the splash screen
@@ -71,7 +79,7 @@ def show_frame(frame):
 # Initialize the root window
 root = tb.Window(themename="cyborg")
 root.title("Game Search Application")
-root.iconbitmap("images/controller.ico")
+root.iconbitmap(resource_path("images/controller.ico"))
 root.geometry("2300x1000")  # Set a consistent size for the window
 
 # Disable maximize and minimize buttons

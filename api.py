@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, Listbox, PhotoImage
 import pandas as pd
-import os
+import os, sys
 import requests
 import time
 from dotenv import load_dotenv
@@ -30,13 +30,13 @@ IGDB_BASE_URL = 'https://api.igdb.com/v4'
 # Check if CLIENT_ID and CLIENT_SECRET are defined
 if not CLIENT_ID and not CLIENT_SECRET:
     print('Error: Both the client ID and client secret are missing. Please add them to your .env file.')
-    exit()
+    sys.exit()
 elif not CLIENT_ID:
     print('Error: The client ID is missing. Please add it to your .env file.')
-    exit()
+    sys.exit()
 elif not CLIENT_SECRET:
     print('Error: The client secret is missing. Please add it to your .env file.')
-    exit()
+    sys.exit()
 
 # Get a new access token
 params = {
@@ -73,13 +73,13 @@ try:
             print(f"Response: {response.text}")
 
         print('Program terminating due to error.')
-        exit()
+        sys.exit()
 
 except requests.exceptions.RequestException as e:
     # Handle network-related exceptions
     print(f"Network error occurred: {e}")
     print('Please check your internet connection or API endpoint URL.')
-    exit()
+    sys.exit()
 
 # Authorization header for searches
 HEADERS = {
