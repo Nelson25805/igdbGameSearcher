@@ -76,14 +76,21 @@ def show_frame(frame):
         widget.pack_forget()
     frame.pack(fill="both", expand=True)
 
-# Initialize the root window
+# Initialize the root window using ttkbootstrap
 root = tb.Window(themename="cyborg")
 root.title("Game Search Application")
 root.iconbitmap(resource_path("images/controller.ico"))
-root.geometry("2300x1000")  # Set a consistent size for the window
 
-# Disable maximize and minimize buttons
-root.resizable(False, False)  # Disable resizing
+# Dynamically adjust the window size based on screen dimensions
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+# For example, set the window to 70% of the screen size
+window_width = int(screen_width * 0.7)
+window_height = int(screen_height * 0.7)
+root.geometry(f"{window_width}x{window_height}")
+
+# Optionally, you might allow resizing if desired
+# root.resizable(True, True)
 
 # Create the splash screen
 create_splash_screen(root)
