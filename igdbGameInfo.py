@@ -292,7 +292,6 @@ def on_search():
     threading.Thread(target=search_thread, daemon=True).start()
 
 
-
 # Function to handle excel save functionality
 def on_save():
     def simulate_save_progress(step=0):
@@ -384,13 +383,6 @@ threading.Thread(target=update_live_count_label, args=(live_count_label,), daemo
 # Set focus on the entry widget
 entry.focus_set()
 
-
-
-
-
-
-
-
 # Create a frame to hold the game details
 game_details_frame = ttk.Frame(root)
 game_details_frame.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
@@ -472,18 +464,6 @@ def populate_game_details(game_data):
     # Disable editing for textboxes
     for textbox in [game_name_text, summary_text, platforms_text, genres_text, release_dates_text]:
         textbox.config(state="disabled")
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # Function to fetch the total number of games
@@ -591,8 +571,6 @@ def fetch_random_game_gui():
         print(f"Error fetching random game: {response.status_code} - {response.text}")
 
 
-
-
 # Add a button to the GUI
 random_game_button = ttk.Button(frame, text="Random Game", command=fetch_random_game_gui)
 random_game_button.grid(row=5, column=0, pady=10)
@@ -600,11 +578,6 @@ random_game_button.grid(row=5, column=0, pady=10)
 # Create a Label for the game image
 game_image_label = ttk.Label(game_details_frame, text="No Image Available", font=("Arial", 12, "italic"))
 game_image_label.grid(row=5, column=0, columnspan=3, pady=10)
-
-
-
-
-
 
 # Start main program
 root.mainloop()
