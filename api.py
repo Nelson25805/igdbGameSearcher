@@ -1,22 +1,8 @@
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, Listbox, PhotoImage
-import pandas as pd
+
 import os, sys
 import requests
-import time
 from dotenv import load_dotenv
-import threading
-
-import random
-
-from datetime import datetime, timezone
-
-import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-
-
-from PIL import Image, ImageTk
-from io import BytesIO
 
 # Load environment variables from .env file
 load_dotenv()
