@@ -1,226 +1,272 @@
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk, ImageDraw, ImageFont
-from io import BytesIO
-import api
-import requests
+import sys
 import random
+import requests
+from io import BytesIO
 from datetime import datetime, timezone
-import threading
-import webbrowser
 
-def open_random_game_search(root, previous_frame, shared_state, show_frame):
-    # Create the random game search frame
-    random_game_search_frame = ttk.Frame(root, padding="5")
-    random_game_search_frame.columnconfigure(0, weight=1)
-    random_game_search_frame.columnconfigure(1, weight=0)
-    random_game_search_frame.columnconfigure(2, weight=1)
-    random_game_search_frame.rowconfigure(0, weight=0)  # Title row fixed
-    random_game_search_frame.rowconfigure(1, weight=0)  # Image row fixed
-    random_game_search_frame.rowconfigure(2, weight=1)  # Game link row fixed
-    random_game_search_frame.rowconfigure(3, weight=0)  # Additional content row
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QLabel, QTextEdit, QPushButton,
+    QGridLayout, QVBoxLayout, QHBoxLayout, QSizePolicy
+)
+from PyQt5.QtGui import QFont, QPixmap, QImage, QPainter, QPen
+from PyQt5.QtCore import Qt, QTimer, QThread, QObject, pyqtSignal
 
-    # Add title label at the top center
-    title_label = ttk.Label(random_game_search_frame, text="Random Game Section", font=("Arial", 16, "bold"))
-    title_label.grid(row=0, column=0, columnspan=2, sticky="n")
+import api  # Your API module
 
-    # Details frame for game info
-    details_frame = ttk.Frame(random_game_search_frame)
-    details_frame.grid(row=1, column=0, sticky="nsew", padx=10)
+#########################################
+# Worker class using QThread mechanism  #
+#########################################
 
-    def add_detail_row(frame, row, label_text, height):
-        label = ttk.Label(frame, text=label_text, font=("Arial", 12, "bold"))
-        label.grid(row=row, column=0, sticky="w", pady=5)
-        # Create a container for the text widget and scrollbar
-        textbox_frame = ttk.Frame(frame)
-        textbox_frame.grid(row=row, column=1, sticky="ew", padx=10, pady=5)
-        textbox = tk.Text(textbox_frame, height=height, state="disabled", wrap="word", bd=2, relief="sunken")
-        textbox.grid(row=0, column=0, sticky="ew")
-        scrollbar = ttk.Scrollbar(textbox_frame, orient="vertical", command=textbox.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        textbox.config(yscrollcommand=scrollbar.set)
-        return textbox
+class FetchWorker(QObject):
+    finished = pyqtSignal(dict, object, QPixmap)  # Emits: game_data, game_url, pixmap
+    error = pyqtSignal(str)
 
-    game_name_text    = add_detail_row(details_frame, 0, "Game Name:", 2)
-    summary_text      = add_detail_row(details_frame, 1, "Summary:", 4)
-    platforms_text    = add_detail_row(details_frame, 2, "Platforms:", 2)
-    genres_text       = add_detail_row(details_frame, 3, "Genres:", 2)
-    release_dates_text= add_detail_row(details_frame, 4, "Release Dates:", 2)
+    def __init__(self, desired_width, desired_height, parent=None):
+        super().__init__(parent)
+        self.desired_width = desired_width
+        self.desired_height = desired_height
 
-    # Game Image Label in column 2
-    game_image_label = ttk.Label(random_game_search_frame, text="No Image Available", font=("Arial", 12, "italic"))
-    game_image_label.grid(row=1, column=2, sticky="nsew", padx=10, pady=(5, 10))
-
-    # Compute dynamic image dimensions based on current window size.
-    # If the window width/height are not available yet, fallback to default values.
-    current_width  = root.winfo_width() if root.winfo_width() > 100 else 1200
-    current_height = root.winfo_height() if root.winfo_height() > 100 else 800
-    desired_image_width  = int(current_width * 0.3)
-    desired_image_height = int(current_height * 0.8)
-
-    # Display placeholder image with dynamic dimensions
-    display_no_image(game_image_label, desired_image_width, desired_image_height)
-
-    # Frame for the game URL (placed below the image)
-    url_frame = ttk.Frame(random_game_search_frame)
-    url_frame.grid(row=2, column=2, sticky="nsew", padx=10, pady=(0, 10))
-    url_description_label = ttk.Label(url_frame, text="Game Link:", font=("Arial", 12, "bold"))
-    url_description_label.pack(anchor="w")
-    url_label = ttk.Label(url_frame, text="No link available", foreground="gray", cursor="arrow", font=("Arial", 12))
-    url_label.pack(anchor="w")
-
-    # Buttons frame at the bottom (in column 0)
-    buttons_frame = ttk.Frame(random_game_search_frame)
-    buttons_frame.grid(row=2, column=0)
-    
-    # Note: Pass root to fetch_random_game_gui so it can compute sizes dynamically.
-    random_game_button = ttk.Button(buttons_frame, text="Fetch Random Game",
-        command=lambda: fetch_random_game_gui(root, game_name_text, summary_text, platforms_text,
-                                               genres_text, release_dates_text, game_image_label, 
-                                               random_game_button, back_button, url_label, random_game_search_frame))
-    random_game_button.pack(side="left", padx=10)
-
-    # Back Button to return to the previous page
-    back_button = ttk.Button(buttons_frame, text="Back to Main Page",
-                              command=lambda: show_frame(previous_frame))
-    back_button.pack(side="right", padx=10)
-
-    # Show the new frame
-    show_frame(random_game_search_frame)
-
-
-def fetch_random_game_gui(root, game_name_text, summary_text, platforms_text, genres_text, release_dates_text, 
-                          game_image_label, random_game_button, back_button, url_label, random_game_search_frame):
-    # Disable buttons while fetching data
-    random_game_button.config(state='disabled')
-    back_button.config(state='disabled')
-
-    def fetch_data():
+    def run(self):
         try:
-            total_games = get_total_games_count()
+            # Fetch total games count
+            total_response = requests.post(
+                f"{api.IGDB_BASE_URL}/games/count",
+                headers=api.HEADERS,
+                data="",
+                timeout=10
+            )
+            if total_response.status_code == 200:
+                total_games = total_response.json().get('count', 0)
+            else:
+                raise Exception(f"Count API call failed with status code {total_response.status_code}")
+
             if total_games == 0:
                 raise Exception("No games found in the database.")
 
             random_offset = random.randint(0, total_games - 1)
+            query = (
+                "fields name, summary, release_dates.date, genres.name, "
+                "platforms.name, cover.image_id, slug; "
+                f"offset {random_offset}; limit 1;"
+            )
             response = requests.post(
                 f"{api.IGDB_BASE_URL}/games",
                 headers=api.HEADERS,
-                data=f"fields name, summary, release_dates.date, genres.name, platforms.name, cover.image_id, slug; offset {random_offset}; limit 1;"
+                data=query,
+                timeout=10
             )
-
             if response.status_code == 200:
                 game_data = response.json()[0]
-                populate_game_details(game_data, game_name_text, summary_text, platforms_text, 
-                                      genres_text, release_dates_text, random_game_search_frame)
-
                 # Build game URL from slug
                 game_slug = game_data.get('slug')
                 game_url = f"https://www.igdb.com/games/{game_slug}" if game_slug else None
 
-                # Display game image if available
-                cover_image_id = game_data.get('cover', {}).get('image_id')
+                # Process cover image if available
+                cover = game_data.get('cover')
+                if cover:
+                    cover_image_id = cover.get('image_id')
+                else:
+                    cover_image_id = None
+
                 if cover_image_id:
                     image_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{cover_image_id}.jpg"
-                    image_response = requests.get(image_url)
+                    image_response = requests.get(image_url, timeout=10)
                     if image_response.status_code == 200:
-                        image_data = Image.open(BytesIO(image_response.content))
-                        # Dynamically compute desired image size
-                        current_width  = root.winfo_width() if root.winfo_width() > 100 else 1200
-                        current_height = root.winfo_height() if root.winfo_height() > 100 else 800
-                        desired_width  = int(current_width * 0.3)
-                        desired_height = int(current_height * 0.8)
-                        image_data = image_data.resize((desired_width, desired_height))
-                        game_image = ImageTk.PhotoImage(image_data)
-                        game_image_label.config(image=game_image, text="")
-                        game_image_label.image = game_image
+                        image = QImage()
+                        image.loadFromData(image_response.content)
+                        pixmap = QPixmap.fromImage(image).scaled(
+                            self.desired_width, self.desired_height,
+                            Qt.KeepAspectRatio, Qt.SmoothTransformation
+                        )
                     else:
-                        display_no_image(game_image_label, desired_width, desired_height)
+                        pixmap = self.display_no_image()
                 else:
-                    display_no_image(game_image_label, desired_width, desired_height)
-
-                # Update the game URL label
-                update_game_url(url_label, game_url)
+                    pixmap = self.display_no_image()
             else:
                 raise Exception(f"API call failed with status code {response.status_code}")
         except Exception as e:
-            print(f"Error: {e}")
-        finally:
-            random_game_button.config(state='normal')
-            back_button.config(state='normal')
+            self.error.emit(str(e))
+            game_data = {}
+            game_url = None
+            pixmap = self.display_no_image()
+        self.finished.emit(game_data, game_url, pixmap)
 
-    threading.Thread(target=fetch_data, daemon=True).start()
+    def display_no_image(self):
+        # Create a placeholder QPixmap with fixed dimensions.
+        image = QImage(self.desired_width, self.desired_height, QImage.Format_RGB32)
+        image.fill(Qt.gray)
+        painter = QPainter(image)
+        painter.setPen(QPen(Qt.white))
+        font = QFont("Arial", 16)
+        painter.setFont(font)
+        painter.drawText(image.rect(), Qt.AlignCenter, "No Image Available")
+        painter.end()
+        return QPixmap.fromImage(image)
 
+############################################
+# Main Window: Random Game Search Interface#
+############################################
 
-def update_game_url(url_label, game_url):
-    """Update the game URL label with a clickable link or placeholder text."""
-    if game_url:
-        url_label.config(text="View Game on IGDB", foreground="blue", cursor="hand2")
-        url_label.bind("<Button-1>", lambda e: open_game_url(game_url))
-    else:
-        url_label.config(text="No link available", foreground="gray", cursor="arrow")
-
-
-def open_game_url(url):
-    """Open the game URL in the default browser."""
-    webbrowser.open(url)
-
-
-def display_no_image(game_image_label, width=400, height=600):
-    """Display a placeholder image with dynamic dimensions."""
-    placeholder_image = Image.new("RGB", (width, height), color="gray")
-    draw = ImageDraw.Draw(placeholder_image)
-    text = "No Image Available"
-    try:
-        # Use a common font; ensure 'arial.ttf' is accessible or change to a default.
-        font = ImageFont.truetype("arial.ttf", int(height * 0.07))
-    except Exception:
-        font = ImageFont.load_default()
-
-    text_bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = text_bbox[2] - text_bbox[0]
-    text_height = text_bbox[3] - text_bbox[1]
-    text_x = (width - text_width) // 2
-    text_y = (height - text_height) // 2
-    draw.text((text_x, text_y), text, fill="white", font=font)
-    game_image = ImageTk.PhotoImage(placeholder_image)
-    game_image_label.config(image=game_image, text="")
-    game_image_label.image = game_image
-
-
-def populate_game_details(game_data, game_name_text, summary_text, platforms_text, 
-                          genres_text, release_dates_text, random_game_search_frame):
-    # Populate text widgets with game data
-    for widget in [game_name_text, summary_text, platforms_text, genres_text, release_dates_text]:
-        widget.config(state="normal")
-        widget.delete("1.0", "end")
+class RandomGameSearchWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Random Game Search")
+        # Reduced height from 600 to 500
+        self.resize(800, 400)
+        
+        # Set up central widget and main layout
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(10)
+        
+        # Title Label
+        title_label = QLabel("Random Game Section", self)
+        title_label.setFont(QFont("Arial", 24, QFont.Bold))
+        title_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(title_label)
+        
+        # Horizontal layout: left (game details) and right (image/link)
+        content_layout = QHBoxLayout()
+        main_layout.addLayout(content_layout)
+        
+        # LEFT: Grid layout for labels and read-only text areas
+        grid_layout = QGridLayout()
+        grid_layout.setSpacing(10)
+        labels = [
+            "Game Name:",
+            "Summary:",
+            "Platforms:",
+            "Genres:",
+            "Release Dates:"
+        ]
+        self.text_areas = []
+        for i, label_text in enumerate(labels):
+            label = QLabel(label_text, self)
+            label.setFont(QFont("Arial", 12))
+            grid_layout.addWidget(label, i, 0)
+            
+            text_area = QTextEdit(self)
+            text_area.setReadOnly(True)
+            text_area.setFixedHeight(60)
+            text_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            grid_layout.addWidget(text_area, i, 1)
+            self.text_areas.append(text_area)
+        left_widget = QWidget(self)
+        left_widget.setLayout(grid_layout)
+        content_layout.addWidget(left_widget, 3)
+        
+        # RIGHT: Vertical layout for image and game link
+        right_layout = QVBoxLayout()
+        right_layout.setSpacing(10)
+        self.game_image_label = QLabel(self)
+        # Fixed image box size
+        self.game_image_label.setFixedSize(300, 300)
+        self.game_image_label.setStyleSheet("border: 1px solid black;")
+        self.game_image_label.setAlignment(Qt.AlignCenter)
+        self.game_image_label.setPixmap(QPixmap())
+        right_layout.addWidget(self.game_image_label)
+        
+        self.game_link_label = QLabel("Game Link: Not Available", self)
+        self.game_link_label.setFont(QFont("Arial", 12))
+        self.game_link_label.setAlignment(Qt.AlignCenter)
+        self.game_link_label.setOpenExternalLinks(True)
+        right_layout.addWidget(self.game_link_label)
+        
+        right_widget = QWidget(self)
+        right_widget.setLayout(right_layout)
+        content_layout.addWidget(right_widget, 2)
+        
+        # Bottom buttons
+        button_layout = QHBoxLayout()
+        button_layout.setSpacing(20)
+        
+        self.fetch_button = QPushButton("Fetch Random Game", self)
+        self.fetch_button.setFont(QFont("Arial", 12))
+        self.fetch_button.clicked.connect(self.fetch_random_game)
+        button_layout.addWidget(self.fetch_button)
+        
+        self.back_button = QPushButton("Back to Main Page", self)
+        self.back_button.setFont(QFont("Arial", 12))
+        self.back_button.clicked.connect(self.back_to_main)
+        button_layout.addWidget(self.back_button)
+        
+        main_layout.addLayout(button_layout)
+        
+    def fetch_random_game(self):
+        # Disable buttons while fetching
+        self.fetch_button.setEnabled(False)
+        self.back_button.setEnabled(False)
+        
+        # Instead of calculating dynamically, use fixed image box dimensions
+        desired_width = self.game_image_label.width()
+        desired_height = self.game_image_label.height()
+        
+        # Set up QThread and worker
+        self.thread = QThread()
+        self.worker = FetchWorker(desired_width, desired_height)
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.on_fetch_finished)
+        self.worker.error.connect(self.on_fetch_error)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.start()
     
-    game_name_text.insert("1.0", game_data.get("name", "No Information"))
-    summary_text.insert("1.0", game_data.get("summary", "No Information"))
-    platforms_text.insert("1.0", ', '.join(platform['name'] for platform in game_data.get('platforms', [])) or "No Information")
-    genres_text.insert("1.0", ', '.join(genre['name'] for genre in game_data.get('genres', [])) or "No Information")
-    release_dates_raw = game_data.get('release_dates', [])
-    release_dates_text.insert("1.0", ', '.join(
-        datetime.fromtimestamp(date_entry['date'], timezone.utc).strftime('%d-%m-%Y')
-        for date_entry in release_dates_raw if 'date' in date_entry) or "No Information"
-    )
-
-    # Optionally add a clickable URL in this frame if provided by API
-    game_url = game_data.get('url')
-    if game_url:
-        game_url_label = ttk.Label(random_game_search_frame, text="Visit Game Page", foreground="blue", cursor="hand2")
-        game_url_label.grid(row=6, column=0, columnspan=2)
-        game_url_label.bind("<Button-1>", lambda e: open_game_url(game_url))
+    def on_fetch_finished(self, game_data, game_url, pixmap):
+        if game_data:
+            self.populate_game_details(game_data)
+            self.game_image_label.setPixmap(pixmap)
+            if game_url:
+                self.game_link_label.setText(f'<a href="{game_url}">View Game on IGDB</a>')
+            else:
+                self.game_link_label.setText("No link available")
+        self.fetch_button.setEnabled(True)
+        self.back_button.setEnabled(True)
     
-    for widget in [game_name_text, summary_text, platforms_text, genres_text, release_dates_text]:
-        widget.config(state="disabled")
+    def on_fetch_error(self, error_message):
+        print("Error during fetch:", error_message)
+        self.fetch_button.setEnabled(True)
+        self.back_button.setEnabled(True)
+    
+    def populate_game_details(self, game_data):
+        self.text_areas[0].setPlainText(game_data.get("name", "No Information"))
+        self.text_areas[1].setPlainText(game_data.get("summary", "No Information"))
+        
+        platforms = game_data.get("platforms", [])
+        platforms_str = ", ".join(platform.get("name", "") for platform in platforms) if platforms else "No Information"
+        self.text_areas[2].setPlainText(platforms_str)
+        
+        genres = game_data.get("genres", [])
+        genres_str = ", ".join(genre.get("name", "") for genre in genres) if genres else "No Information"
+        self.text_areas[3].setPlainText(genres_str)
+        
+        release_dates = game_data.get("release_dates", [])
+        if release_dates:
+            dates_formatted = []
+            for date_entry in release_dates:
+                if "date" in date_entry:
+                    dt = datetime.fromtimestamp(date_entry["date"], tz=timezone.utc)
+                    dates_formatted.append(dt.strftime("%d-%m-%Y"))
+            release_dates_str = ", ".join(dates_formatted) if dates_formatted else "No Information"
+        else:
+            release_dates_str = "No Information"
+        self.text_areas[4].setPlainText(release_dates_str)
+    
+    def back_to_main(self):
+        from main import MainWindow
+        global main_window
+        main_window = MainWindow()
+        main_window.show()
+        self.close()
 
+def main():
+    app = QApplication(sys.argv)
+    window = RandomGameSearchWindow()
+    window.show()
+    sys.exit(app.exec_())
 
-def get_total_games_count():
-    response = requests.post(
-        f"{api.IGDB_BASE_URL}/games/count",
-        headers=api.HEADERS,
-        data=""
-    )
-    if response.status_code == 200:
-        return response.json().get('count', 0)
-    return 0
+if __name__ == "__main__":
+    main()
