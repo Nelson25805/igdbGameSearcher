@@ -1,6 +1,4 @@
-import sys
-import os
-import subprocess
+import os, sys
 from PyQt5.QtWidgets import (
     QApplication, QSplashScreen, QMainWindow, QPushButton, QLabel,
     QVBoxLayout, QWidget, QHBoxLayout, QSizePolicy
@@ -51,12 +49,6 @@ class MainWindow(QMainWindow):
         search_button.clicked.connect(self.launch_search)
         button_layout.addWidget(search_button)
 
-        category_button = QPushButton("Browse Categories", self)
-        category_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        category_button.setFont(QFont("Arial", 16))
-        category_button.clicked.connect(self.launch_categories)
-        button_layout.addWidget(category_button)
-
         # New button for Random Game Search
         random_game_button = QPushButton("Random Game Search", self)
         random_game_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
@@ -73,10 +65,6 @@ class MainWindow(QMainWindow):
         main_window = GameSearchWindow()
         main_window.show()
         self.close()
-
-    def launch_categories(self):
-        # Launch categories.py (if that file exists)
-        subprocess.Popen(["python", "categories.py"])
 
     def launch_random_game_search(self):
         # Import the RandomGameSearchWindow class from random_game_search.py

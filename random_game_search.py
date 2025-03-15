@@ -1,7 +1,6 @@
 import sys
 import random
 import requests
-from io import BytesIO
 from datetime import datetime, timezone
 
 from PyQt5.QtWidgets import (
@@ -11,10 +10,10 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QFont, QPixmap, QImage, QPainter, QPen
 from PyQt5.QtCore import Qt, QTimer, QThread, QObject, pyqtSignal
 
-import api  # Your API module
+import api  # All API logic is centralized in api.py
 
 #########################################
-# Worker class using QThread mechanism  #
+# Worker Class Using QThread Mechanism  #
 #########################################
 
 class FetchWorker(QObject):
@@ -28,62 +27,45 @@ class FetchWorker(QObject):
 
     def run(self):
         try:
-            # Fetch total games count
-            total_response = requests.post(
-                f"{api.IGDB_BASE_URL}/games/count",
-                headers=api.HEADERS,
-                data="",
-                timeout=10
-            )
-            if total_response.status_code == 200:
-                total_games = total_response.json().get('count', 0)
-            else:
-                raise Exception(f"Count API call failed with status code {total_response.status_code}")
-
+            # Get total games count using the helper in api.py.
+            total_games = api.get_games_count()
             if total_games == 0:
                 raise Exception("No games found in the database.")
-
             random_offset = random.randint(0, total_games - 1)
             query = (
                 "fields name, summary, release_dates.date, genres.name, "
-                "platforms.name, cover.image_id, slug; "
+                "platforms.name, cover.id, cover.image_id, slug; "
                 f"offset {random_offset}; limit 1;"
             )
-            response = requests.post(
-                f"{api.IGDB_BASE_URL}/games",
-                headers=api.HEADERS,
-                data=query,
-                timeout=10
-            )
-            if response.status_code == 200:
-                game_data = response.json()[0]
-                # Build game URL from slug
-                game_slug = game_data.get('slug')
-                game_url = f"https://www.igdb.com/games/{game_slug}" if game_slug else None
+            game_data_list = api.get_game_data(query)
+            if not game_data_list:
+                raise Exception("API call for game data returned no results.")
+            game_data = game_data_list[0]
+            # Build game URL from slug
+            game_slug = game_data.get('slug')
+            game_url = f"https://www.igdb.com/games/{game_slug}" if game_slug else None
 
-                # Process cover image if available
-                cover = game_data.get('cover')
-                if cover:
-                    cover_image_id = cover.get('image_id')
-                else:
-                    cover_image_id = None
+            # Process cover image using our api helper.
+            # Pass the numeric cover ID instead of the entire cover dictionary.
+            cover = game_data.get('cover')
+            if cover:
+                image_url = api.fetch_cover_image(cover.get("id"))
+            else:
+                image_url = ""
 
-                if cover_image_id:
-                    image_url = f"https://images.igdb.com/igdb/image/upload/t_cover_big/{cover_image_id}.jpg"
-                    image_response = requests.get(image_url, timeout=10)
-                    if image_response.status_code == 200:
-                        image = QImage()
-                        image.loadFromData(image_response.content)
-                        pixmap = QPixmap.fromImage(image).scaled(
-                            self.desired_width, self.desired_height,
-                            Qt.KeepAspectRatio, Qt.SmoothTransformation
-                        )
-                    else:
-                        pixmap = self.display_no_image()
+            if image_url and image_url.startswith("http"):
+                image_response = requests.get(image_url, timeout=10)
+                if image_response.status_code == 200:
+                    image = QImage()
+                    image.loadFromData(image_response.content)
+                    pixmap = QPixmap.fromImage(image).scaled(
+                        self.desired_width, self.desired_height,
+                        Qt.KeepAspectRatio, Qt.SmoothTransformation
+                    )
                 else:
                     pixmap = self.display_no_image()
             else:
-                raise Exception(f"API call failed with status code {response.status_code}")
+                pixmap = self.display_no_image()
         except Exception as e:
             self.error.emit(str(e))
             game_data = {}
@@ -111,7 +93,6 @@ class RandomGameSearchWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Random Game Search")
-        # Reduced height from 600 to 500
         self.resize(800, 400)
         
         # Set up central widget and main layout
@@ -161,7 +142,6 @@ class RandomGameSearchWindow(QMainWindow):
         right_layout = QVBoxLayout()
         right_layout.setSpacing(10)
         self.game_image_label = QLabel(self)
-        # Fixed image box size
         self.game_image_label.setFixedSize(300, 300)
         self.game_image_label.setStyleSheet("border: 1px solid black;")
         self.game_image_label.setAlignment(Qt.AlignCenter)
@@ -193,13 +173,13 @@ class RandomGameSearchWindow(QMainWindow):
         button_layout.addWidget(self.back_button)
         
         main_layout.addLayout(button_layout)
-        
+    
     def fetch_random_game(self):
         # Disable buttons while fetching
         self.fetch_button.setEnabled(False)
         self.back_button.setEnabled(False)
         
-        # Instead of calculating dynamically, use fixed image box dimensions
+        # Use fixed image box dimensions for scaling
         desired_width = self.game_image_label.width()
         desired_height = self.game_image_label.height()
         
@@ -261,6 +241,16 @@ class RandomGameSearchWindow(QMainWindow):
         main_window = MainWindow()
         main_window.show()
         self.close()
+    
+    def closeEvent(self, event):
+        # Ensure any running thread is properly stopped before closing.
+        try:
+            if hasattr(self, 'thread') and self.thread.isRunning():
+                self.thread.quit()
+                self.thread.wait()
+        except Exception as e:
+            print("Error during thread shutdown:", e)
+        event.accept()
 
 def main():
     app = QApplication(sys.argv)

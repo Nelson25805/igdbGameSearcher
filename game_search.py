@@ -1,98 +1,20 @@
 import sys
-import time
-import requests
 import pandas as pd
-from datetime import datetime, timezone
 
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QLineEdit, QPushButton,
     QVBoxLayout, QHBoxLayout, QGridLayout, QProgressBar, QListWidget,
-    QMessageBox, QFileDialog, QScrollArea, QCheckBox
+    QMessageBox, QFileDialog, QCheckBox
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
 
-import api  # Your API module
+import api  # Now all API logic is centralized in api.py
 
 # Global state similar to your original code
-games_list = []          # List of game records
-existing_game_ids = set()  # To avoid duplicate games
-searched_titles = set()  # Track which titles have been searched
-
-# -----------------------
-# Helper API Functions
-# -----------------------
-
-def fetch_data(endpoint, fields):
-    response = requests.post(
-        f"{api.IGDB_BASE_URL}/{endpoint}",
-        headers=api.HEADERS,
-        data=f"fields {fields}; limit 500;"
-    )
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(f"Error fetching data from {endpoint}: {response.status_code} - {response.text}")
-        return []
-
-def get_game_data(api_token, client_id, query, endpoint="games"):
-    url = f"{api.IGDB_BASE_URL}/{endpoint}"
-    headers = {
-        "Client-ID": client_id,
-        "Authorization": f"Bearer {api_token}",
-    }
-    response = requests.post(url, headers=headers, data=query)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(f"Error: {response.status_code}, {response.text}")
-        return []
-
-def fetch_cover_image(cover_id):
-    if not cover_id:
-        return "No cover available"
-    response = requests.post(
-        f"{api.IGDB_BASE_URL}/covers",
-        headers=api.HEADERS,
-        data=f"fields image_id; where id = {cover_id};"
-    )
-    if response.status_code == 200:
-        cover_data = response.json()
-        if cover_data and 'image_id' in cover_data[0]:
-            image_id = cover_data[0]['image_id']
-            return f"https://images.igdb.com/igdb/image/upload/t_cover_big/{image_id}.jpg"
-        else:
-            return "Cover image not found"
-    else:
-        print(f"Error fetching cover data: {response.status_code} - {response.text}")
-        return "Error fetching cover image"
-
-def create_genre_map():
-    genres = fetch_data('genres', 'id, name')
-    return {genre['id']: genre['name'] for genre in genres}
-
-def create_platform_map():
-    platforms = fetch_data('platforms', 'id, name')
-    return {platform['id']: platform['name'] for platform in platforms}
-
-# Create maps for later lookup
-GENRE_MAP = create_genre_map()
-PLATFORM_MAP = create_platform_map()
-
-def fetch_genre_names(genre_ids):
-    if not genre_ids:
-        return ["Not Available"]
-    return [GENRE_MAP.get(genre_id, f"Unknown Genre {genre_id}") for genre_id in genre_ids]
-
-def fetch_platform_names(platform_ids):
-    if not platform_ids:
-        return ["Not Available"]
-    return [PLATFORM_MAP.get(platform_id, f"Unknown Platform {platform_id}") for platform_id in platform_ids]
-
-def format_unix_timestamp(timestamp):
-    if not timestamp:
-        return "Not Available"
-    return datetime.utcfromtimestamp(timestamp).strftime('%d-%m-%Y')
+games_list = []           # List of game records
+existing_game_ids = set() # To avoid duplicate games
+searched_titles = set()   # Track which titles have been searched
 
 # -----------------------
 # Worker Class for Searching
@@ -116,7 +38,7 @@ class SearchWorker(QObject):
             while True:
                 query = (f"fields name, first_release_date, rating, genres, storyline, summary, "
                          f"platforms, cover, id; search \"{self.game_title}\"; limit 500; offset {offset};")
-                game_data = get_game_data(api.ACCESS_TOKEN, api.CLIENT_ID, query)
+                game_data = api.get_game_data(query)
                 if not game_data:
                     break
                 all_game_data.extend(game_data)
@@ -150,13 +72,13 @@ class SearchWorker(QObject):
                     continue
                 game_info = {
                     "Name": game.get('name', 'Not Available'),
-                    "Release Date": format_unix_timestamp(game.get('first_release_date')),
+                    "Release Date": api.format_unix_timestamp(game.get('first_release_date')),
                     "Rating": game.get('rating', 'Not Available'),
-                    "Genres": ', '.join(fetch_genre_names(game.get('genres', []))),
+                    "Genres": ', '.join(api.fetch_genre_names(game.get('genres', []), api.GENRE_MAP)),
                     "Storyline": game.get('storyline', 'Not Available'),
                     "Summary": game.get('summary', 'Not Available'),
-                    "Platforms": ', '.join(fetch_platform_names(game.get('platforms', []))),
-                    "Cover URL": fetch_cover_image(game.get('cover'))
+                    "Platforms": ', '.join(api.fetch_platform_names(game.get('platforms', []), api.PLATFORM_MAP)),
+                    "Cover URL": api.fetch_cover_image(game.get('cover'))
                 }
                 results.append(game_info)
                 existing_game_ids.add(game.get('id'))
@@ -206,7 +128,7 @@ class GameSearchWindow(QMainWindow):
         self.genre_checkbox_widget = QWidget(self)
         checkbox_layout = QGridLayout(self.genre_checkbox_widget)
         self.genre_checkboxes = {}
-        genres = list(GENRE_MAP.values())
+        genres = list(api.GENRE_MAP.values())
         for idx, genre in enumerate(genres):
             checkbox = QCheckBox(genre, self)
             self.genre_checkboxes[genre] = checkbox
@@ -246,7 +168,7 @@ class GameSearchWindow(QMainWindow):
         for genre, checkbox in self.genre_checkboxes.items():
             if checkbox.isChecked():
                 # Reverse lookup to get the id from GENRE_MAP
-                for id_, name in GENRE_MAP.items():
+                for id_, name in api.GENRE_MAP.items():
                     if name == genre:
                         selected_ids.append(id_)
                         break
