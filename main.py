@@ -75,6 +75,9 @@ class MainWindow(QMainWindow):
         main_window = RandomGameSearchWindow()
         main_window.show()
         self.close()
+def load_stylesheet(file_path):
+    with open(file_path, "r") as f:
+        return f.read()
 
 def main():
     # Enable High DPI scaling and high DPI pixmaps
@@ -82,7 +85,13 @@ def main():
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     
     app = QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    # Load the dark theme first.
+    dark_style = qdarkstyle.load_stylesheet_pyqt5()
+    # Then load your size styling overrides.
+    size_style = load_stylesheet("style.qss")
+    
+    # Combine them (size_style overrides where applicable)
+    app.setStyleSheet(dark_style + "\n" + size_style)
     
     # Set up the splash screen using resource_path to locate the image in the bundled exe.
     splash_pix = QPixmap(resource_path("images/splash.png"))

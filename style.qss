@@ -1,0 +1,33 @@
+/* ui_size.qss */
+/* Adjust font sizes, padding, margins, etc. */
+
+/* Labels */
+QLabel {
+    font-size: 14px;
+    padding: 4px;
+}
+
+/* Buttons */
+QPushButton {
+    font-size: 14px;
+    padding: 8px;
+    margin: 2px;
+}
+
+/* Text fields */
+QTextEdit, QLineEdit {
+    font-size: 14px;
+    padding: 5px;
+}
+
+/* Progress Bar */
+QProgressBar {
+    font-size: 12px;
+    min-height: 20px;
+}
+
+/* List Widget */
+QListWidget {
+    font-size: 14px;
+    padding: 4px;
+}

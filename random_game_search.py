@@ -252,10 +252,20 @@ class RandomGameSearchWindow(QMainWindow):
         except Exception as e:
             print("Error during thread shutdown:", e)
         event.accept()
+        
+def load_stylesheet(file_path):
+    with open(file_path, "r") as f:
+        return f.read()
 
 def main():
     app = QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    # Load the dark theme first.
+    dark_style = qdarkstyle.load_stylesheet_pyqt5()
+    # Then load your size styling overrides.
+    size_style = load_stylesheet("style.qss")
+    
+    # Combine them (size_style overrides where applicable)
+    app.setStyleSheet(dark_style + "\n" + size_style)
     window = RandomGameSearchWindow()
     window.show()
     sys.exit(app.exec_())
