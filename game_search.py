@@ -1,5 +1,6 @@
 import sys
 import pandas as pd
+import qdarkstyle
 
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QLineEdit, QPushButton,
@@ -241,6 +242,7 @@ class GameSearchWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     window = GameSearchWindow()
     window.show()
     sys.exit(app.exec_())

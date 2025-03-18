@@ -1,4 +1,5 @@
 import os, sys
+import qdarkstyle
 from PyQt5.QtWidgets import (
     QApplication, QSplashScreen, QMainWindow, QPushButton, QLabel,
     QVBoxLayout, QWidget, QHBoxLayout, QSizePolicy
@@ -81,6 +82,7 @@ def main():
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     
     app = QApplication(sys.argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     
     # Set up the splash screen using resource_path to locate the image in the bundled exe.
     splash_pix = QPixmap(resource_path("images/splash.png"))

@@ -2,6 +2,7 @@ import sys
 import random
 import requests
 from datetime import datetime, timezone
+import qdarkstyle
 
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QTextEdit, QPushButton,
@@ -254,6 +255,7 @@ class RandomGameSearchWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     window = RandomGameSearchWindow()
     window.show()
     sys.exit(app.exec_())
