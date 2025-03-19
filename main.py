@@ -7,6 +7,11 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import QTimer, Qt
 
+# Pre import other files for faster loading
+import game_search
+import random_game_search
+
+
 # Helper function to get the resource path for PyInstaller
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
