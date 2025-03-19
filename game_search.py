@@ -185,6 +185,7 @@ class GameSearchWindow(QMainWindow):
             return
         self.search_button.setEnabled(False)
         self.save_button.setEnabled(False)
+        self.back_button.setEnabled(False)
         selected_genre_ids = self.get_selected_genre_ids()
         
         self.thread = QThread()
@@ -214,6 +215,7 @@ class GameSearchWindow(QMainWindow):
         self.entry.clear()
         self.search_button.setEnabled(True)
         self.save_button.setEnabled(True)
+        self.back_button.setEnabled(True)
         
     def search_error(self, error_message):
         QMessageBox.information(self, "No Results", error_message)
