@@ -20,7 +20,6 @@ searched_titles = set()   # Track which titles have been searched
 # -----------------------
 # Worker Class for Searching
 # -----------------------
-
 class SearchWorker(QObject):
     progress = pyqtSignal(int, int)  # current step, total steps
     finished = pyqtSignal(list, str)  # list of game records, searched title
@@ -47,7 +46,7 @@ class SearchWorker(QObject):
                 if len(game_data) < 500:
                     break
             if not all_game_data:
-                self.error.emit("No data found for the specified game.")
+                self.finished.emit([], self.game_title)
                 return
             
             # Filter games by selected genres (if any)
@@ -61,6 +60,7 @@ class SearchWorker(QObject):
             
             if not filtered_game_data:
                 self.error.emit("No games match the selected genres.")
+                self.finished.emit([], self.game_title)
                 return
             
             total = len(filtered_game_data)
@@ -87,11 +87,11 @@ class SearchWorker(QObject):
             self.finished.emit(results, self.game_title)
         except Exception as e:
             self.error.emit(str(e))
+            self.finished.emit([], self.game_title)
 
 # -----------------------
 # Main Game Search Window (PyQt version)
 # -----------------------
-
 class GameSearchWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -111,8 +111,9 @@ class GameSearchWindow(QMainWindow):
         title_label.setObjectName("title_label")
         main_layout.addWidget(title_label)
         
-        # Input for game title
+        # Input for game title in a horizontal layout with minimal spacing
         input_layout = QHBoxLayout()
+        input_layout.setSpacing(5)  # Reduce spacing so label and QLineEdit are close
         entry_label = QLabel("Enter game title:", self)
         entry_label.setFont(QFont("Arial", 12))
         input_layout.addWidget(entry_label)
@@ -121,21 +122,34 @@ class GameSearchWindow(QMainWindow):
         input_layout.addWidget(self.entry)
         main_layout.addLayout(input_layout)
         
-        # Genre selection checkboxes
-        genre_label = QLabel("Select Genres:", self)
-        genre_label.setFont(QFont("Arial", 12))
-        main_layout.addWidget(genre_label)
+        # Create a horizontal layout for genre checkboxes and search history list
+        info_layout = QHBoxLayout()
+        info_layout.setSpacing(10)
+        
+        # Genre selection checkboxes using a grid layout (3 columns)
         self.genre_checkbox_widget = QWidget(self)
         checkbox_layout = QGridLayout(self.genre_checkbox_widget)
+        checkbox_layout.setSpacing(5)
         self.genre_checkboxes = {}
         genres = list(api.GENRE_MAP.values())
+        columns = 3  # Change the number of columns as desired
         for idx, genre in enumerate(genres):
             checkbox = QCheckBox(genre, self)
             self.genre_checkboxes[genre] = checkbox
-            checkbox_layout.addWidget(checkbox, idx // 3, idx % 3)
-        main_layout.addWidget(self.genre_checkbox_widget)
+            row = idx // columns
+            col = idx % columns
+            checkbox_layout.addWidget(checkbox, row, col)
+        info_layout.addWidget(self.genre_checkbox_widget)
         
-        # Progress bar and live count label
+        # Search history list with fixed dimensions to control its size
+        self.search_history_list = QListWidget(self)
+        self.search_history_list.setMinimumWidth(150)  # Adjust as needed
+        self.search_history_list.setMaximumHeight(200)   # Adjust as needed
+        info_layout.addWidget(self.search_history_list)
+        
+        main_layout.addLayout(info_layout)
+        
+        # Progress bar and live count label (stacked vertically)
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setMaximum(100)
         main_layout.addWidget(self.progress_bar)
@@ -143,11 +157,7 @@ class GameSearchWindow(QMainWindow):
         self.live_count_label = QLabel("Unique Games Added: 0", self)
         main_layout.addWidget(self.live_count_label)
         
-        # Search history list
-        self.search_history_list = QListWidget(self)
-        main_layout.addWidget(self.search_history_list)
-        
-        # Buttons: Search, Save, Back
+        # Buttons: Search, Save, Back in a horizontal layout
         button_layout = QHBoxLayout()
         self.search_button = QPushButton("Search", self)
         self.search_button.clicked.connect(self.on_search)
@@ -208,16 +218,19 @@ class GameSearchWindow(QMainWindow):
         global searched_titles
         searched_titles.add(game_title)
         self.search_history_list.insertItem(0, f"{len(searched_titles)}) {game_title}")
-        self.games_list.extend(results)
         self.progress_bar.setValue(0)
-        QMessageBox.information(self, "Success", f"Game data for '{game_title}' has been fetched.")
         self.entry.clear()
+        if not results:
+            QMessageBox.information(self, "No Results", f"No game data found for '{game_title}'.")
+        else:
+            self.games_list.extend(results)
+            QMessageBox.information(self, "Success", f"Game data for '{game_title}' has been fetched.")
         self.search_button.setEnabled(True)
         self.save_button.setEnabled(True)
         self.back_button.setEnabled(True)
         
     def search_error(self, error_message):
-        QMessageBox.information(self, "No Results", error_message)
+        QMessageBox.information(self, "Error", error_message)
         self.search_button.setEnabled(True)
         self.save_button.setEnabled(True)
         self.back_button.setEnabled(True)
@@ -245,6 +258,13 @@ class GameSearchWindow(QMainWindow):
 def load_stylesheet(file_path):
     with open(file_path, "r") as f:
         return f.read()
+    
+def closeEvent(self, event):
+    if hasattr(self, 'thread') and self.thread.isRunning():
+        self.thread.quit()
+        self.thread.wait()
+    event.accept()
+
 
 def main():
     app = QApplication(sys.argv)

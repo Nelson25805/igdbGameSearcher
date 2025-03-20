@@ -2,7 +2,7 @@ import os, sys
 import qdarkstyle
 from PyQt5.QtWidgets import (
     QApplication, QSplashScreen, QMainWindow, QPushButton, QLabel,
-    QVBoxLayout, QWidget, QHBoxLayout, QSizePolicy
+    QVBoxLayout, QWidget, QHBoxLayout, QSizePolicy, 
 )
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import QTimer, Qt
