@@ -108,8 +108,7 @@ class GameSearchWindow(QMainWindow):
         
         # Title
         title_label = QLabel("Game Search", self)
-        title_label.setFont(QFont("Arial", 20, QFont.Bold))
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setObjectName("title_label")
         main_layout.addWidget(title_label)
         
         # Input for game title
@@ -221,6 +220,7 @@ class GameSearchWindow(QMainWindow):
         QMessageBox.information(self, "No Results", error_message)
         self.search_button.setEnabled(True)
         self.save_button.setEnabled(True)
+        self.back_button.setEnabled(True)
         
     def on_save(self):
         if not self.games_list:

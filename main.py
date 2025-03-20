@@ -7,10 +7,9 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import QTimer, Qt
 
-# Pre import other files for faster loading
+# Import the other modules to load faster
 import game_search
 import random_game_search
-
 
 # Helper function to get the resource path for PyInstaller
 def resource_path(relative_path):
@@ -39,50 +38,70 @@ class MainWindow(QMainWindow):
         layout.setSpacing(20)
         
         # Welcome message
-        welcome_label = QLabel("Welcome to Game Searcher!", self)
-        welcome_label.setAlignment(Qt.AlignCenter)
-        welcome_label.setFont(QFont("Arial", 24))
-        layout.addWidget(welcome_label)
+        title_label = QLabel("Welcome to the IGDB Game Searcher!", self)
+        title_label.setObjectName("title_label")
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
         
-        # Create a horizontal layout for the buttons
+               # Create a horizontal layout for the two buttons (each with its own vertical layout)
         button_layout = QHBoxLayout()
         button_layout.setSpacing(20)
 
-        # Existing buttons (for demonstration, these launch other scripts)
+        # First column: Search Games
+        search_layout = QVBoxLayout()
+        search_layout.setSpacing(5)  # Reduce vertical spacing between the button and its description
         search_button = QPushButton("Search Games", self)
         search_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         search_button.setFont(QFont("Arial", 16))
         search_button.clicked.connect(self.launch_search)
-        button_layout.addWidget(search_button)
+        search_layout.addWidget(search_button)
+        
+        search_desc = QLabel("Click here to search for games by title and view detailed information.", self)
+        search_desc.setWordWrap(True)
+        search_desc.setAlignment(Qt.AlignCenter)
+        search_desc.setFont(QFont("Arial", 12))
+        search_layout.addWidget(search_desc)
+        
+        button_layout.addLayout(search_layout)
 
-        # New button for Random Game Search
-        random_game_button = QPushButton("Random Game Search", self)
-        random_game_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        random_game_button.setFont(QFont("Arial", 16))
-        random_game_button.clicked.connect(self.launch_random_game_search)
-        button_layout.addWidget(random_game_button)
+        # Second column: Random Game Search
+        random_layout = QVBoxLayout()
+        random_layout.setSpacing(5)  # Reduce spacing here as well
+        random_button = QPushButton("Random Game Search", self)
+        random_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        random_button.setFont(QFont("Arial", 16))
+        random_button.clicked.connect(self.launch_random_game_search)
+        random_layout.addWidget(random_button)
+        
+        random_desc = QLabel("Click here to fetch and display a random game from our database.", self)
+        random_desc.setWordWrap(True)
+        random_desc.setAlignment(Qt.AlignCenter)
+        random_desc.setFont(QFont("Arial", 12))
+        random_layout.addWidget(random_desc)
+        
+        button_layout.addLayout(random_layout)
 
+        
         layout.addLayout(button_layout)
 
     def launch_search(self):
         from game_search import GameSearchWindow
         global main_window
-        # Replace the current window with the new one
         main_window = GameSearchWindow()
         main_window.show()
         self.close()
 
     def launch_random_game_search(self):
-        # Import the RandomGameSearchWindow class from random_game_search.py
         from random_game_search import RandomGameSearchWindow
         global main_window
-        # Replace the current window with the new one
         main_window = RandomGameSearchWindow()
         main_window.show()
         self.close()
+
 def load_stylesheet(file_path):
-    with open(file_path, "r") as f:
-        return f.read()
+    """Load external stylesheet from file."""
+    with open(file_path, "r") as file:
+        return file.read()
 
 def main():
     # Enable High DPI scaling and high DPI pixmaps
@@ -92,7 +111,7 @@ def main():
     app = QApplication(sys.argv)
     # Load the dark theme first.
     dark_style = qdarkstyle.load_stylesheet_pyqt5()
-    # Then load your size styling overrides.
+    # Then load your size styling overrides from your external file.
     size_style = load_stylesheet("style.qss")
     
     # Combine them (size_style overrides where applicable)

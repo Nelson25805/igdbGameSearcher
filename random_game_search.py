@@ -105,8 +105,7 @@ class RandomGameSearchWindow(QMainWindow):
         
         # Title Label
         title_label = QLabel("Random Game Section", self)
-        title_label.setFont(QFont("Arial", 24, QFont.Bold))
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setObjectName("title_label")
         main_layout.addWidget(title_label)
         
         # Horizontal layout: left (game details) and right (image/link)
