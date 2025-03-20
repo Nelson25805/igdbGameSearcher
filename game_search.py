@@ -122,17 +122,17 @@ class GameSearchWindow(QMainWindow):
         input_layout.addWidget(self.entry)
         main_layout.addLayout(input_layout)
         
-        # Create a horizontal layout for genre checkboxes and search history list
+        # Create a horizontal layout for the genre checkboxes and search history list
         info_layout = QHBoxLayout()
         info_layout.setSpacing(10)
         
-        # Genre selection checkboxes using a grid layout (3 columns)
+        # Genre selection checkboxes in a grid layout (3 columns)
         self.genre_checkbox_widget = QWidget(self)
         checkbox_layout = QGridLayout(self.genre_checkbox_widget)
         checkbox_layout.setSpacing(5)
         self.genre_checkboxes = {}
         genres = list(api.GENRE_MAP.values())
-        columns = 3  # Change the number of columns as desired
+        columns = 3  # adjust number of columns as needed
         for idx, genre in enumerate(genres):
             checkbox = QCheckBox(genre, self)
             self.genre_checkboxes[genre] = checkbox
@@ -141,15 +141,15 @@ class GameSearchWindow(QMainWindow):
             checkbox_layout.addWidget(checkbox, row, col)
         info_layout.addWidget(self.genre_checkbox_widget)
         
-        # Search history list with fixed dimensions to control its size
+        # Search history list with fixed dimensions
         self.search_history_list = QListWidget(self)
-        self.search_history_list.setMinimumWidth(150)  # Adjust as needed
-        self.search_history_list.setMaximumHeight(200)   # Adjust as needed
+        self.search_history_list.setMinimumWidth(150)
+        self.search_history_list.setMaximumHeight(200)
         info_layout.addWidget(self.search_history_list)
         
         main_layout.addLayout(info_layout)
         
-        # Progress bar and live count label (stacked vertically)
+        # Progress bar and live count label
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setMaximum(100)
         main_layout.addWidget(self.progress_bar)
@@ -174,6 +174,7 @@ class GameSearchWindow(QMainWindow):
         main_layout.addLayout(button_layout)
         
     def get_selected_genre_ids(self):
+        """Return a list of selected genre IDs for query filtering."""
         selected_ids = []
         for genre, checkbox in self.genre_checkboxes.items():
             if checkbox.isChecked():
@@ -184,17 +185,34 @@ class GameSearchWindow(QMainWindow):
                         break
         return selected_ids
     
+    def get_selected_genre_names(self):
+        """Return a sorted list of selected genre names for display and duplicate checking."""
+        selected_names = [genre for genre, checkbox in self.genre_checkboxes.items() if checkbox.isChecked()]
+        selected_names.sort()
+        return selected_names
+    
     def on_search(self):
         game_title = self.entry.text().strip().lower()
         if not game_title:
             QMessageBox.warning(self, "Input Error", "Please enter a game title.")
             return
-        if game_title in searched_titles:
-            QMessageBox.information(self, "Duplicate Search", f"Search for '{game_title}' has already been done.")
+        
+        # Build a composite search key from the game title and selected genres
+        selected_genre_names = self.get_selected_genre_names()
+        if selected_genre_names:
+            search_key = f"{game_title} | {','.join(selected_genre_names)}"
+        else:
+            search_key = game_title
+        
+        if search_key in searched_titles:
+            QMessageBox.information(self, "Duplicate Search", f"Search for '{search_key}' has already been done.")
             return
+        
+        # Disable buttons
         self.search_button.setEnabled(False)
         self.save_button.setEnabled(False)
         self.back_button.setEnabled(False)
+        
         selected_genre_ids = self.get_selected_genre_ids()
         
         self.thread = QThread()
@@ -216,15 +234,22 @@ class GameSearchWindow(QMainWindow):
     
     def search_finished(self, results, game_title):
         global searched_titles
-        searched_titles.add(game_title)
-        self.search_history_list.insertItem(0, f"{len(searched_titles)}) {game_title}")
+        # Build the composite key again to store in searched_titles and display in history.
+        selected_genre_names = self.get_selected_genre_names()
+        if selected_genre_names:
+            search_key = f"{game_title} | {','.join(selected_genre_names)}"
+        else:
+            search_key = game_title
+
+        searched_titles.add(search_key)
+        self.search_history_list.insertItem(0, f"{len(searched_titles)}) {search_key}")
         self.progress_bar.setValue(0)
         self.entry.clear()
         if not results:
-            QMessageBox.information(self, "No Results", f"No game data found for '{game_title}'.")
+            QMessageBox.information(self, "No Results", f"No game data found for '{search_key}'.")
         else:
             self.games_list.extend(results)
-            QMessageBox.information(self, "Success", f"Game data for '{game_title}' has been fetched.")
+            QMessageBox.information(self, "Success", f"Game data for '{search_key}' has been fetched.")
         self.search_button.setEnabled(True)
         self.save_button.setEnabled(True)
         self.back_button.setEnabled(True)
