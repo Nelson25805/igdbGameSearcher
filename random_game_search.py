@@ -9,23 +9,30 @@ from PyQt5.QtWidgets import (
     QGridLayout, QVBoxLayout, QHBoxLayout, QSizePolicy
 )
 from PyQt5.QtGui import QFont, QPixmap, QImage, QPainter, QPen
-from PyQt5.QtCore import Qt, QTimer, QThread, QObject, pyqtSignal
+from PyQt5.QtCore import Qt, QRunnable, QThreadPool, QObject, pyqtSignal, pyqtSlot
 
 import api  # All API logic is centralized in api.py
 
 #########################################
-# Worker Class Using QThread Mechanism  #
+# Worker Signals for QRunnable          #
 #########################################
 
-class FetchWorker(QObject):
-    finished = pyqtSignal(dict, object, QPixmap)  # Emits: game_data, game_url, pixmap
+class WorkerSignals(QObject):
+    finished = pyqtSignal(dict, object, QPixmap)  # game_data, game_url, pixmap
     error = pyqtSignal(str)
 
-    def __init__(self, desired_width, desired_height, parent=None):
-        super().__init__(parent)
+#########################################
+# Worker Class Using QRunnable          #
+#########################################
+
+class FetchWorkerRunnable(QRunnable):
+    def __init__(self, desired_width, desired_height):
+        super().__init__()
         self.desired_width = desired_width
         self.desired_height = desired_height
+        self.signals = WorkerSignals()
 
+    @pyqtSlot()
     def run(self):
         try:
             # Get total games count using the helper in api.py.
@@ -68,11 +75,11 @@ class FetchWorker(QObject):
             else:
                 pixmap = self.display_no_image()
         except Exception as e:
-            self.error.emit(str(e))
+            self.signals.error.emit(str(e))
             game_data = {}
             game_url = None
             pixmap = self.display_no_image()
-        self.finished.emit(game_data, game_url, pixmap)
+        self.signals.finished.emit(game_data, game_url, pixmap)
 
     def display_no_image(self):
         # Create a placeholder QPixmap with fixed dimensions.
@@ -173,27 +180,25 @@ class RandomGameSearchWindow(QMainWindow):
         button_layout.addWidget(self.back_button)
         
         main_layout.addLayout(button_layout)
+
+        # Create a thread pool for QRunnable workers
+        self.threadpool = QThreadPool()
     
     def fetch_random_game(self):
         # Disable buttons while fetching
         self.fetch_button.setEnabled(False)
         self.back_button.setEnabled(False)
-        
-        # Use fixed image box dimensions for scaling
+
         desired_width = self.game_image_label.width()
         desired_height = self.game_image_label.height()
+
+        # Create a QRunnable worker for fetching game data
+        runnable = FetchWorkerRunnable(desired_width, desired_height)
+        runnable.signals.finished.connect(self.on_fetch_finished)
+        runnable.signals.error.connect(self.on_fetch_error)
         
-        # Set up QThread and worker
-        self.thread = QThread()
-        self.worker = FetchWorker(desired_width, desired_height)
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.on_fetch_finished)
-        self.worker.error.connect(self.on_fetch_error)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        self.thread.start()
+        # Start the worker in the global thread pool
+        self.threadpool.start(runnable)
     
     def on_fetch_finished(self, game_data, game_url, pixmap):
         if game_data:
@@ -243,14 +248,11 @@ class RandomGameSearchWindow(QMainWindow):
         self.close()
     
     def closeEvent(self, event):
-        # Ensure any running thread is properly stopped before closing.
-        try:
-            if hasattr(self, 'thread') and self.thread.isRunning():
-                self.thread.quit()
-                self.thread.wait()
-        except Exception as e:
-            print("Error during thread shutdown:", e)
+        # QThreadPool will automatically wait for running tasks at exit,
+        # but you can also clear it explicitly if desired.
+        self.threadpool.waitForDone()
         event.accept()
+
         
 def load_stylesheet(file_path):
     with open(file_path, "r") as f:
