@@ -52,14 +52,12 @@ class MainWindow(QMainWindow):
         search_layout.setSpacing(5)  # Reduce vertical spacing between the button and its description
         search_button = QPushButton("Search Games", self)
         search_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        search_button.setFont(QFont("Arial", 16))
         search_button.clicked.connect(self.launch_search)
         search_layout.addWidget(search_button)
         
         search_desc = QLabel("Click here to search for games by title and view detailed information.", self)
         search_desc.setWordWrap(True)
         search_desc.setAlignment(Qt.AlignCenter)
-        search_desc.setFont(QFont("Arial", 12))
         search_layout.addWidget(search_desc)
         
         button_layout.addLayout(search_layout)
@@ -69,14 +67,12 @@ class MainWindow(QMainWindow):
         random_layout.setSpacing(5)  # Reduce spacing here as well
         random_button = QPushButton("Random Game Search", self)
         random_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        random_button.setFont(QFont("Arial", 16))
         random_button.clicked.connect(self.launch_random_game_search)
         random_layout.addWidget(random_button)
         
         random_desc = QLabel("Click here to fetch and display a random game from our database.", self)
         random_desc.setWordWrap(True)
         random_desc.setAlignment(Qt.AlignCenter)
-        random_desc.setFont(QFont("Arial", 12))
         random_layout.addWidget(random_desc)
         
         button_layout.addLayout(random_layout)
