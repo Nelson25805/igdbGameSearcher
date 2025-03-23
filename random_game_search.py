@@ -132,7 +132,6 @@ class RandomGameSearchWindow(QMainWindow):
         self.text_areas = []
         for i, label_text in enumerate(labels):
             label = QLabel(label_text, self)
-            label.setFont(QFont("Arial", 12))
             grid_layout.addWidget(label, i, 0)
             
             text_area = QTextEdit(self)
@@ -156,7 +155,6 @@ class RandomGameSearchWindow(QMainWindow):
         right_layout.addWidget(self.game_image_label)
         
         self.game_link_label = QLabel("Game Link: Not Available", self)
-        self.game_link_label.setFont(QFont("Arial", 12))
         self.game_link_label.setAlignment(Qt.AlignCenter)
         self.game_link_label.setOpenExternalLinks(True)
         right_layout.addWidget(self.game_link_label)
@@ -170,12 +168,10 @@ class RandomGameSearchWindow(QMainWindow):
         button_layout.setSpacing(20)
         
         self.fetch_button = QPushButton("Fetch Random Game", self)
-        self.fetch_button.setFont(QFont("Arial", 12))
         self.fetch_button.clicked.connect(self.fetch_random_game)
         button_layout.addWidget(self.fetch_button)
         
         self.back_button = QPushButton("Back to Main Page", self)
-        self.back_button.setFont(QFont("Arial", 12))
         self.back_button.clicked.connect(self.back_to_main)
         button_layout.addWidget(self.back_button)
         

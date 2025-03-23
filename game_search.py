@@ -115,7 +115,6 @@ class GameSearchWindow(QMainWindow):
         input_layout = QHBoxLayout()
         input_layout.setSpacing(5)  # Reduce spacing so label and QLineEdit are close
         entry_label = QLabel("Enter game title:", self)
-        entry_label.setFont(QFont("Arial", 12))
         input_layout.addWidget(entry_label)
         self.entry = QLineEdit(self)
         self.entry.setFixedWidth(300)
