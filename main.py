@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QApplication, QSplashScreen, QMainWindow, QPushButton, QLabel,
     QVBoxLayout, QWidget, QHBoxLayout, QSizePolicy, 
 )
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QTimer, Qt
 
 # Import the other modules to load faster

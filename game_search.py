@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QMessageBox, QFileDialog, QCheckBox
 )
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject
+from PyQt5.QtCore import QThread, pyqtSignal, QObject
 
 import api  # Now all API logic is centralized in api.py
 
