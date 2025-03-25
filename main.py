@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QApplication, QSplashScreen, QMainWindow, QPushButton, QLabel,
     QVBoxLayout, QWidget, QHBoxLayout, QSizePolicy, 
 )
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import QTimer, Qt
 
 # Import the other modules to load faster
@@ -29,6 +29,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Game Searcher")
         self.resize(600, 400)
+        
+        self.setWindowIcon(QIcon(resource_path("images/controller.ico")))
 
         # Set up central widget and layout
         central_widget = QWidget(self)
@@ -105,6 +107,11 @@ def main():
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     
     app = QApplication(sys.argv)
+    
+    # Set the application-wide icon
+    icon_path = resource_path("images/controller.ico")  # Update the path if necessary
+    app.setWindowIcon(QIcon(icon_path))
+    
     # Load the dark theme first.
     dark_style = qdarkstyle.load_stylesheet_pyqt5()
     # Then load your size styling overrides from your external file.
