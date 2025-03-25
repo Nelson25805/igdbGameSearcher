@@ -13,13 +13,12 @@ import random_game_search
 
 # Helper function to get the resource path for PyInstaller
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
 
 # Global variable to keep a reference to the main window
 main_window = None
@@ -30,7 +29,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Game Searcher")
         self.resize(600, 400)
         
-        self.setWindowIcon(QIcon(resource_path("images/controller.ico")))
+        self.setWindowIcon(QIcon(resource_path("images/splash.ico")))
 
         # Set up central widget and layout
         central_widget = QWidget(self)
@@ -109,13 +108,13 @@ def main():
     app = QApplication(sys.argv)
     
     # Set the application-wide icon
-    icon_path = resource_path("images/controller.ico")  # Update the path if necessary
+    icon_path = resource_path("images/splash.ico")  # Update the path if necessary
     app.setWindowIcon(QIcon(icon_path))
     
     # Load the dark theme first.
     dark_style = qdarkstyle.load_stylesheet_pyqt5()
     # Then load your size styling overrides from your external file.
-    size_style = load_stylesheet("style.qss")
+    size_style = load_stylesheet(resource_path("style.qss"))
     
     # Combine them (size_style overrides where applicable)
     app.setStyleSheet(dark_style + "\n" + size_style)
