@@ -1,3 +1,12 @@
+# This file is the main entry point for the application. It creates 
+# the main window and splash screen, and loads the dark theme and 
+# custom stylesheet. It also contains the main function that 
+# initializes the application and sets up the splash screen with 
+# a loading message.
+
+# Author: Nelson McFadyen
+# Last Updated: March, 27, 2025
+
 import os, sys
 import qdarkstyle
 from PyQt5.QtWidgets import (
