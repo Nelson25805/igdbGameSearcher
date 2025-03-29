@@ -1,3 +1,9 @@
+# This file is the random game search interface for the IGDB API.
+# It allows users to fetch and display a random game from the IGDB database.
+
+# Author: Nelson McFadyen
+# Last Updated: March, 29, 2025
+
 import sys
 import random
 import requests
