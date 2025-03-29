@@ -1,3 +1,9 @@
+# This file is the api module for the IGDB Game Searcher application. 
+# It handles API requests to the IGDB database,
+
+# Author: Nelson McFadyen
+# Last Updated: March, 28, 2025
+
 import os, sys
 import time
 import requests
