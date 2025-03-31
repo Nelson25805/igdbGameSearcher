@@ -1,3 +1,9 @@
+# This file is the game_search.py module, which contains the main 
+# logic for searching games using the IGDB API.
+
+# Author: Nelson McFadyen
+# Last Updated: March, 30, 2025
+
 import sys
 import pandas as pd
 import qdarkstyle
