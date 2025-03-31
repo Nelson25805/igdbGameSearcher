@@ -1,6 +1,3 @@
-/* ui_size.qss */
-/* Adjust font sizes, padding, margins, etc. */
-
 /*
     * This stylesheet is designed to be used with PyQt or PySide applications.
     * It customizes the appearance of various widgets to improve readability and usability.
