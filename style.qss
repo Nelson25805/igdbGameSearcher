@@ -1,11 +1,14 @@
 /* ui_size.qss */
 /* Adjust font sizes, padding, margins, etc. */
 
-/* Labels */
-/* QLabel {
-    font-size: 14px;
-    padding: 4px;
-} */
+/*
+    * This stylesheet is designed to be used with PyQt or PySide applications.
+    * It customizes the appearance of various widgets to improve readability and usability.
+
+    * Author: Nelson McFadyen
+    * Last Updated: March, 30, 2025
+    */
+*/
 
 QLabel {
     font-size: 18px;
