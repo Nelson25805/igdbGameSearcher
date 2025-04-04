@@ -101,7 +101,7 @@ class SearchWorker(QObject):
 class GameSearchWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Game Search")
+        self.setWindowTitle("IGDB Game Searcher")
         self.resize(800, 600)
         self.games_list = []  # local storage of game records
         
@@ -113,7 +113,7 @@ class GameSearchWindow(QMainWindow):
         main_layout.setSpacing(10)
         
         # Title
-        title_label = QLabel("Game Search", self)
+        title_label = QLabel("Filtered Game Search", self)
         title_label.setObjectName("title_label")
         main_layout.addWidget(title_label)
         

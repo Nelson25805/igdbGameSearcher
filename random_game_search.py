@@ -106,7 +106,7 @@ class FetchWorkerRunnable(QRunnable):
 class RandomGameSearchWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Random Game Search")
+        self.setWindowTitle("IGDB Game Searcher")
         self.resize(800, 400)
         
         # Set up central widget and main layout
@@ -117,7 +117,7 @@ class RandomGameSearchWindow(QMainWindow):
         main_layout.setSpacing(10)
         
         # Title Label
-        title_label = QLabel("Random Game Section", self)
+        title_label = QLabel("Random Game Search", self)
         title_label.setObjectName("title_label")
         main_layout.addWidget(title_label)
         
