@@ -28,7 +28,7 @@
 
 
   <p align="center">
-    You can search for a random game, or specific game titles matching genre, and name using the IGDB game database.
+    An application to search for games using the IGDB API.
     <br />
     <a href="https://github.com/Nelson25805/igdbGameInfo"><strong>Explore the docs »</strong></a>
     <br />
@@ -77,8 +77,11 @@ Main project interface.
 
 ## Explanation on program:
 [![Project Name Screen Shot][project-screenshot2]](https://example.com)
-Convert your PDF and Word documents into interactive HTML flipbooks with realistic page-turning animations.
+IGDB Game Searcher is a desktop application that allows you to search for games using the IGDB API. You have two primary search modes:
+- **Search Games:** Look up games by title and filter by genre.
+- **Random Game Search:** Fetch a random game from the IGDB database.
 
+The project is built using Python and PyQt5, with a polished dark theme (via qdarkstyle) and a custom external stylesheet for UI sizing and spacing.
 
 ## Computer interface example:
 [![Project Name Screen Shot][project-screenshot3]](https://example.com)
@@ -94,12 +97,11 @@ It's also interactive to orient from single to double pages depending on mobile 
 
 ### Built With
 
-* [![Python][Python]][Python-url] - Core programming language.
-* [![Tkinter][Tkinter]][Tkinter-url] – For building the graphical user interface.
-* [![JQuery][JQuery.com]][JQuery-url] - Handles dynamic interactions within the HTML flipbook.
-* **pdf2image** – Converts PDF pages into images.
-* **docx2pdf** *(optional)* – Converts Word documents into PDF format.
-* **Turn.js** – Enables interactive page-turning effects in the generated HTML.
+- [![Python][Python]][Python-url]
+- [![PyQt5][PyQt5-shield]][PyQt5-url]
+- [![qdarkstyle][qdarkstyle-shield]][qdarkstyle-url]
+- **IGDB API**
+- **Pandas**
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
