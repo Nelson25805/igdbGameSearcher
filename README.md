@@ -97,11 +97,14 @@ It's also interactive to orient from single to double pages depending on mobile 
 
 ### Built With
 
-- [![Python][Python]][Python-url]
-- [![PyQt5][PyQt5-shield]][PyQt5-url]
-- [![qdarkstyle][qdarkstyle-shield]][qdarkstyle-url]
-- **IGDB API**
-- **Pandas**
+### Built With
+
+- [![Python](GithubImages/pythonShield.svg)][Python-url]
+- [![PyQt5](GithubImages/pyqt5Shield.svg)][PyQt5-url]
+- [![qdarkstyle](GithubImages/qDarkStyleShield.svg)][qdarkstyle-url]
+- [![IGDB API](GithubImages/igdbApiShield.svg)][igdb-api-url]
+- [![Pandas](GithubImages/pandasShield.svg)][pandas-url]
+
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -239,6 +242,11 @@ Project Link: [https://github.com/Nelson25805/igdbGameInfo](https://github.com/N
 [project-screenshot3]: GithubImages/flipbookComputerExample.gif
 [project-screenshot4]: GithubImages/flipbookMobileExample.gif
 
+[Python-url]: https://www.python.org/downloads/
+[PyQt5-url]: https://pypi.org/project/PyQt5/
+[qdarkstyle-url]: https://pypi.org/project/QDarkStyle/
+[igdb-api-url]: https://api-docs.igdb.com/
+[pandas-url]: https://pandas.pydata.org/
 
 [Python]: https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54
 [Python-url]: https://www.python.org/downloads/
