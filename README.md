@@ -28,7 +28,7 @@
 
 
   <p align="center">
-    You can search for a random game, or specific game titles matching genre, and name using the IGDB game database.
+    An application to search for games using the IGDB API.
     <br />
     <a href="https://github.com/Nelson25805/igdbGameInfo"><strong>Explore the docs »</strong></a>
     <br />
@@ -77,8 +77,11 @@ Main project interface.
 
 ## Explanation on program:
 [![Project Name Screen Shot][project-screenshot2]](https://example.com)
-Convert your PDF and Word documents into interactive HTML flipbooks with realistic page-turning animations.
+IGDB Game Searcher is a desktop application that allows you to search for games using the IGDB API. You have two primary search modes:
+- **Search Games:** Look up games by title and filter by genre.
+- **Random Game Search:** Fetch a random game from the IGDB database.
 
+The project is built using Python and PyQt5, with a polished dark theme (via qdarkstyle) and a custom external stylesheet for UI sizing and spacing.
 
 ## Computer interface example:
 [![Project Name Screen Shot][project-screenshot3]](https://example.com)
@@ -94,12 +97,11 @@ It's also interactive to orient from single to double pages depending on mobile 
 
 ### Built With
 
-* [![Python][Python]][Python-url] - Core programming language.
-* [![Tkinter][Tkinter]][Tkinter-url] – For building the graphical user interface.
-* [![JQuery][JQuery.com]][JQuery-url] - Handles dynamic interactions within the HTML flipbook.
-* **pdf2image** – Converts PDF pages into images.
-* **docx2pdf** *(optional)* – Converts Word documents into PDF format.
-* **Turn.js** – Enables interactive page-turning effects in the generated HTML.
+- [![Python][Python]][Python-url]
+- [![PyQt5][PyQt5-shield]][PyQt5-url]
+- [![qdarkstyle][qdarkstyle-shield]][qdarkstyle-url]
+- **IGDB API**
+- **Pandas**
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -119,21 +121,27 @@ To start, you have two options of using this software.
    git clone https://github.com/Nelson25805/igdbGameInfo.git
    ```
    
-2. If using option 1, just run the .exe file in the dist folder and begin converting.
+2. If using option 1, skip to step 5.
    If using option 2, continue reading.
    
 3. You must have python downloaded on your machine, or in your IDE of choice.
    [Python Download](https://www.python.org/downloads/)
 
-4. Download pdf2image using the following command inside your terminal of choice:
+4. Install the required packages:
    ```sh
-   pip install pdf2image
+   pip install -r requirements.txt
    ```
    
-5. Download the Latest Microsoft Visual C++ Redistributable Version:
-   [Microsoft Visual C++ Download](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
+5. Create account for IGDB Api requests following their steps:
+   [IGDB Api Getting Started](https://api-docs.igdb.com/#getting-started)
 
-6. Run converter.py file in IDE of choice, and begin converting.
+7. Create a .env file with your new CLIENT_ID, and CLIENT_SECRET as shown in an example here:
+   SHOW PICTURE / PICTURES
+
+8. Either run the application from the .exe in the dlist folder, or by executing:
+    ```sh
+   python main.py
+   ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
