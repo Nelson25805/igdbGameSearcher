@@ -94,17 +94,15 @@ It's also interactive to orient from single to double pages depending on mobile 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+  ### Built With
 
-### Built With
-
-### Built With
-
-- [![Python](GithubImages/pythonShield.svg)][Python-url]
-- [![PyQt5](GithubImages/pyqt5Shield.svg)][PyQt5-url]
-- [![qdarkstyle](GithubImages/qDarkStyleShield.svg)][qdarkstyle-url]
-- [![IGDB API](GithubImages/igdbApiShield.svg)][igdb-api-url]
-- [![Pandas](GithubImages/pandasShield.svg)][pandas-url]
-
+| Badge | Description |
+|:-----:|-------------|
+| [![Python](GithubImages/pythonShield.svg)][Python-url] | Core programming language. |
+| [![PyQt5](GithubImages/pyqt5Shield.svg)][PyQt5-url] | User interface built with PyQt5. |
+| [![qdarkstyle](GithubImages/qDarkStyleShield.svg)][qdarkstyle-url] | Polished dark theme support via qdarkstyle. |
+| [![IGDB API](GithubImages/igdbApiShield.svg)][igdb-api-url] | Retrieves game data from the IGDB API. |
+| [![Pandas](GithubImages/pandasShield.svg)][pandas-url] | Data analysis and manipulation with Pandas. |
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
