@@ -60,12 +60,12 @@ class MainWindow(QMainWindow):
         # First column: Search Games
         search_layout = QVBoxLayout()
         search_layout.setSpacing(5)  # Reduce vertical spacing between the button and its description
-        search_button = QPushButton("Search Games", self)
+        search_button = QPushButton("Filtered Game Search", self)
         search_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         search_button.clicked.connect(self.launch_search)
         search_layout.addWidget(search_button)
         
-        search_desc = QLabel("Click here to search for games by title and view detailed information.", self)
+        search_desc = QLabel("Click here to search for games by title and genre. Also allows saving results to an excel file.", self)
         search_desc.setWordWrap(True)
         search_desc.setAlignment(Qt.AlignCenter)
         search_layout.addWidget(search_desc)
@@ -80,7 +80,7 @@ class MainWindow(QMainWindow):
         random_button.clicked.connect(self.launch_random_game_search)
         random_layout.addWidget(random_button)
         
-        random_desc = QLabel("Click here to fetch and display a random game from our database.", self)
+        random_desc = QLabel("Click here to fetch and display information about a random game from our IGDB database.", self)
         random_desc.setWordWrap(True)
         random_desc.setAlignment(Qt.AlignCenter)
         random_layout.addWidget(random_desc)

@@ -164,7 +164,7 @@ class GameSearchWindow(QMainWindow):
         
         # Buttons: Search, Save, Back in a horizontal layout
         button_layout = QHBoxLayout()
-        self.search_button = QPushButton("Search", self)
+        self.search_button = QPushButton("Search ", self)
         self.search_button.clicked.connect(self.on_search)
         button_layout.addWidget(self.search_button)
         
@@ -172,7 +172,7 @@ class GameSearchWindow(QMainWindow):
         self.save_button.clicked.connect(self.on_save)
         button_layout.addWidget(self.save_button)
         
-        self.back_button = QPushButton("Back", self)
+        self.back_button = QPushButton("Back to Main Page", self)
         self.back_button.clicked.connect(self.back_to_main)
         button_layout.addWidget(self.back_button)
         
