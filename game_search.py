@@ -11,10 +11,10 @@ import qdarkstyle
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QLineEdit, QPushButton,
     QVBoxLayout, QHBoxLayout, QGridLayout, QProgressBar, QListWidget,
-    QMessageBox, QFileDialog, QCheckBox
+    QMessageBox, QFileDialog, QCheckBox, QSizePolicy
 )
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import QThread, pyqtSignal, QObject
+from PyQt5.QtCore import QThread, pyqtSignal, QObject, Qt
 
 import api  # Now all API logic is centralized in api.py
 
@@ -102,81 +102,108 @@ class GameSearchWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("IGDB Game Searcher")
-        self.resize(800, 600)
+        self.resize(800, 500)
         self.games_list = []  # local storage of game records
         
+        # In GameSearchWindow.__init__:
+
         # Main layout
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(10)
-        
-        # Title
+
+        # Centered Title Label
         title_label = QLabel("Filtered Game Search", self)
         title_label.setObjectName("title_label")
+        title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
-        
-        # Input for game title in a horizontal layout with minimal spacing
-        input_layout = QHBoxLayout()
-        input_layout.setSpacing(5)  # Reduce spacing so label and QLineEdit are close
-        entry_label = QLabel("Enter game title:", self)
-        input_layout.addWidget(entry_label)
+
+        # --- Two-column Layout for the Input and Search History ---
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(20)  # adjust spacing between columns as needed
+
+        # LEFT COLUMN: For game title entry and genres
+        left_column = QVBoxLayout()
+        left_column.setSpacing(5)
+
+        # Row 1 (Left Column): "Enter game title:" label and QLineEdit side-by-side
+        game_title_row = QHBoxLayout()
+        game_title_row.setSpacing(5)
+        enter_title_label = QLabel("Enter game title:", self)
+        game_title_row.addWidget(enter_title_label)
         self.entry = QLineEdit(self)
-        self.entry.setFixedWidth(300)
-        input_layout.addWidget(self.entry)
-        main_layout.addLayout(input_layout)
-        
-        # Create a horizontal layout for the genre checkboxes and search history list
-        info_layout = QHBoxLayout()
-        info_layout.setSpacing(10)
-        
-        # Genre selection checkboxes in a grid layout (3 columns)
+        self.entry.setFixedWidth(300)  # adjust width as needed
+        game_title_row.addWidget(self.entry)
+        left_column.addLayout(game_title_row)
+
+        # Row 2 (Left Column): "Select Genres:" label
+        select_genres_label = QLabel("Select Genres:", self)
+        left_column.addWidget(select_genres_label)
+
+        # Row 3 (Left Column): Grid layout for genre checkboxes
         self.genre_checkbox_widget = QWidget(self)
         checkbox_layout = QGridLayout(self.genre_checkbox_widget)
-        checkbox_layout.setSpacing(5)
+        checkbox_layout.setSpacing(5)  # minimal spacing between checkboxes
         self.genre_checkboxes = {}
         genres = list(api.GENRE_MAP.values())
-        columns = 3  # adjust number of columns as needed
+        columns = 3  # adjust as needed
         for idx, genre in enumerate(genres):
             checkbox = QCheckBox(genre, self)
             self.genre_checkboxes[genre] = checkbox
             row = idx // columns
             col = idx % columns
             checkbox_layout.addWidget(checkbox, row, col)
-        info_layout.addWidget(self.genre_checkbox_widget)
-        
-        # Search history list with fixed dimensions
+        left_column.addWidget(self.genre_checkbox_widget)
+
+        # RIGHT COLUMN: For search history
+        right_column = QVBoxLayout()
+        right_column.setSpacing(5)
+        search_history_label = QLabel("Search History:", self)
+        right_column.addWidget(search_history_label)
+
         self.search_history_list = QListWidget(self)
         self.search_history_list.setMinimumWidth(150)
-        self.search_history_list.setMaximumHeight(200)
-        info_layout.addWidget(self.search_history_list)
-        
-        main_layout.addLayout(info_layout)
-        
-        # Progress bar and live count label
+        # Let the list widget expand to use the available vertical space
+        self.search_history_list.setSizePolicy(self.search_history_list.sizePolicy().horizontalPolicy(),
+                                            QSizePolicy.Expanding)
+        right_column.addWidget(self.search_history_list)
+
+        # Add left and right columns to the two-column layout
+        content_layout.addLayout(left_column, stretch=1)
+        content_layout.addLayout(right_column, stretch=1)
+
+        main_layout.addLayout(content_layout)
+
+        # --- Continue with the rest of your layout as before ---
+        # Progress bar and live count label remain underneath
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setMaximum(100)
         main_layout.addWidget(self.progress_bar)
-        
+
         self.live_count_label = QLabel("Unique Games Added: 0", self)
         main_layout.addWidget(self.live_count_label)
-        
-        # Buttons: Search, Save, Back in a horizontal layout
+
+        # Buttons: Search, Save, Back
         button_layout = QHBoxLayout()
-        self.search_button = QPushButton("Search ", self)
+        button_layout.setSpacing(10)
+        self.search_button = QPushButton("Search", self)
         self.search_button.clicked.connect(self.on_search)
         button_layout.addWidget(self.search_button)
-        
+
         self.save_button = QPushButton("Save to Excel", self)
         self.save_button.clicked.connect(self.on_save)
         button_layout.addWidget(self.save_button)
-        
+
         self.back_button = QPushButton("Back to Main Page", self)
         self.back_button.clicked.connect(self.back_to_main)
         button_layout.addWidget(self.back_button)
-        
+
         main_layout.addLayout(button_layout)
+
+
+
         
     def get_selected_genre_ids(self):
         """Return a list of selected genre IDs for query filtering."""
