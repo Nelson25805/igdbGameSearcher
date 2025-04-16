@@ -71,24 +71,24 @@
 ## About The Project
 
 
-[![Project Name Screen Shot][project-screenshotTest3]](https://example.com)
+[![Project Name Screen Shot][project-screenshot]](https://example.com)
 
 Main project interface.
 
 
 ## Explanation on program:
-[![Project Name Screen Shot][project-screenshot2]](https://example.com)
+
 IGDB Game Searcher is a desktop application that allows you to search for games using the IGDB API. You have two primary search modes:
 - **Search Games:** Look up games by title and filter by genre.
 - **Random Game Search:** Fetch a random game from the IGDB database.
 
 The project is built using Python and PyQt5, with a polished dark theme (via qdarkstyle) and a custom external stylesheet for UI sizing and spacing.
 
-## Computer interface example:
-[![Project Name Screen Shot][project-screenshot3]](https://example.com)
+## Filtered Search Page:
+[![Project Name Screen Shot][project-screenshot2]](https://example.com)
 
-## Mobile interface example:
-[![Project Name Screen Shot][project-screenshot4]](https://example.com)
+## Random Search Page:
+[![Project Name Screen Shot][project-screenshot3]](https://example.com)
 
 It's also interactive to orient from single to double pages depending on mobile orientation.
 
@@ -236,13 +236,9 @@ Project Link: [https://github.com/Nelson25805/igdbGameInfo](https://github.com/N
 
 [project-Image]: GithubImages/projectImage.png
 
-[project-screenshot]: GithubImages/mainScreen.png
-[project-screenshotTest]: GithubImages/mainScreenTest.png
-[project-screenshotTest2]: GithubImages/mainScreenTest2.png
-[project-screenshotTest3]: GithubImages/mainScreenTest3.png
-[project-screenshot2]: GithubImages/flipbookBeforeAfter.png
-[project-screenshot3]: GithubImages/flipbookComputerExample.gif
-[project-screenshot4]: GithubImages/flipbookMobileExample.gif
+[project-screenshot]: GithubImages/mainScreenTest3.png
+[project-screenshot2]: GithubImages/filteredSearchPage.png
+[project-screenshot3]: GithubImages/randomPage.png
 
 [Python-url]: https://www.python.org/downloads/
 [PyQt5-url]: https://pypi.org/project/PyQt5/
