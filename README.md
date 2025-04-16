@@ -71,6 +71,7 @@
 ## About The Project
 
 [![Project Name Screen Shot][project-screenshot]](https://example.com)
+[![Project Name Screen Shot][project-screenshotTest]](https://example.com)
 
 Main project interface.
 
@@ -235,7 +236,8 @@ Project Link: [https://github.com/Nelson25805/igdbGameInfo](https://github.com/N
 
 [project-Image]: GithubImages/projectImage.png
 
-[project-screenshot]: GithubImages/projectImage.png
+[project-screenshot]: GithubImages/mainScreen.png
+[project-screenshotTest]: GithubImages/mainScreenTest.png
 [project-screenshot2]: GithubImages/flipbookBeforeAfter.png
 [project-screenshot3]: GithubImages/flipbookComputerExample.gif
 [project-screenshot4]: GithubImages/flipbookMobileExample.gif
