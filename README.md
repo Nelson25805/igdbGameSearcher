@@ -70,13 +70,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-
 [![Project Name Screen Shot][project-screenshot]](https://example.com)
-
-Main project interface.
-
-
-## Explanation on program:
 
 IGDB Game Searcher is a desktop application that allows you to search for games using the IGDB API. You have two primary search modes:
 - **Filtered Search Page:** Look up games by title and filter by genre.
@@ -84,15 +78,18 @@ IGDB Game Searcher is a desktop application that allows you to search for games 
 
 The project is built using Python and PyQt5, with a polished dark theme (via qdarkstyle) and a custom external stylesheet for UI sizing and spacing.
 
-## Filtered Search Page:
+## Examples:
+
+### Filtered Game Search:
 [![Project Name Screen Shot][project-screenshot2]](https://example.com)
 
-This page allow
+This page allows you to search for games with the selected filters, and afterwards save results to a coresponding excel file.
 
-## Random Search Page:
+
+### Random Game Search:
 [![Project Name Screen Shot][project-screenshot3]](https://example.com)
 
-It's also interactive to orient from single to double pages depending on mobile orientation.
+This page allows you to search for a random game in the IGDB database, giving you related information about said game if it's available.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
