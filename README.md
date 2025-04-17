@@ -70,27 +70,26 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-
 [![Project Name Screen Shot][project-screenshot]](https://example.com)
 
-Main project interface.
-
-
-## Explanation on program:
-
 IGDB Game Searcher is a desktop application that allows you to search for games using the IGDB API. You have two primary search modes:
-- **Search Games:** Look up games by title and filter by genre.
-- **Random Game Search:** Fetch a random game from the IGDB database.
+- **Filtered Search Page:** Look up games by title and filter by genre.
+- **Random Search Page:** Fetch a random game from the IGDB database.
 
 The project is built using Python and PyQt5, with a polished dark theme (via qdarkstyle) and a custom external stylesheet for UI sizing and spacing.
 
-## Filtered Search Page:
+## Examples:
+
+### Filtered Game Search:
 [![Project Name Screen Shot][project-screenshot2]](https://example.com)
 
-## Random Search Page:
+This page allows you to search for games with the selected filters, and afterwards save results to a coresponding excel file.
+
+
+### Random Game Search:
 [![Project Name Screen Shot][project-screenshot3]](https://example.com)
 
-It's also interactive to orient from single to double pages depending on mobile orientation.
+This page allows you to search for a random game in the IGDB database, giving you related information about said game if it's available.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -137,10 +136,12 @@ To start, you have two options of using this software.
 5. Create account for IGDB Api requests following their steps:
    [IGDB Api Getting Started](https://api-docs.igdb.com/#getting-started)
 
-7. Create a .env file with your new CLIENT_ID, and CLIENT_SECRET as shown in an example here:
-   SHOW PICTURE / PICTURES
+7. Create a .env file with your unique CLIENT_ID, and CLIENT_SECRET as shown in this fake test example here:
+   [![Project Name Screen Shot][project-screenshot5]](https://example.com)
 
-8. Either run the application from the .exe in the dlist folder, or by executing:
+8. Depending on where you run the application, place .env file into same folder as .exe, and or the main project folder. 
+
+9. Either run the application from the .exe in the dlist folder, or by executing:
     ```sh
    python main.py
    ```
@@ -236,9 +237,13 @@ Project Link: [https://github.com/Nelson25805/igdbGameInfo](https://github.com/N
 
 [project-Image]: GithubImages/projectImage.png
 
-[project-screenshot]: GithubImages/mainScreenTest3.png
+[project-screenshot]: GithubImages/mainScreen.png
 [project-screenshot2]: GithubImages/filteredSearchPage.png
 [project-screenshot3]: GithubImages/randomPage.png
+
+[project-screenshot4]: GithubImages/excelExample.png
+[project-screenshot5]: GithubImages/envExample.png
+
 
 [Python-url]: https://www.python.org/downloads/
 [PyQt5-url]: https://pypi.org/project/PyQt5/
