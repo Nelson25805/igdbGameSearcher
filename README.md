@@ -70,7 +70,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Project Name Screen Shot][project-screenshot]](GithubImages/mainScreen.png)
+[![Project Name Screen Shot][project-screenshot]]
 
 IGDB Game Searcher is a desktop application that allows you to search for games using the IGDB API. You have two primary search modes:
 - **Filtered Search Page:** Look up games by title and filter by genre.
@@ -81,13 +81,13 @@ The project is built using Python and PyQt5, with a polished dark theme (via qda
 ## Examples:
 
 ### Filtered Game Search:
-[![Project Name Screen Shot][project-screenshot2]](https://example.com)
+[![Project Name Screen Shot][project-screenshot2]]
 
 This page allows you to search for games with the selected filters, and afterwards save results to a coresponding excel file.
 
 
 ### Random Game Search:
-[![Project Name Screen Shot][project-screenshot3]](https://example.com)
+[![Project Name Screen Shot][project-screenshot3]]
 
 This page allows you to search for a random game in the IGDB database, giving you related information about said game if it's available.
 
@@ -137,7 +137,7 @@ To start, you have two options of using this software.
    [IGDB Api Getting Started](https://api-docs.igdb.com/#getting-started)
 
 7. Create a .env file with your unique CLIENT_ID, and CLIENT_SECRET as shown in this fake test example here:
-   [![Project Name Screen Shot][project-screenshot5]](https://example.com)
+   [![Project Name Screen Shot][project-screenshot5]]
 
 8. Depending on where you run the application, place .env file into same folder as .exe, and or the main project folder. 
 
