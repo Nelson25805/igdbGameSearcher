@@ -70,7 +70,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Project Name Screen Shot][project-screenshot]](https://example.com)
+[![Project Name Screen Shot][project-screenshot]](GithubImages/mainScreen.png)
 
 IGDB Game Searcher is a desktop application that allows you to search for games using the IGDB API. You have two primary search modes:
 - **Filtered Search Page:** Look up games by title and filter by genre.
