@@ -2,7 +2,7 @@
 # logic for searching games using the IGDB API.
 
 # Author: Nelson McFadyen
-# Last Updated: March, 30, 2025
+# Last Updated: April 19, 2025 (updated back-to-main behavior)
 
 import sys
 import pandas as pd
@@ -19,9 +19,8 @@ from PyQt5.QtCore import QThread, pyqtSignal, QObject, Qt
 import api  # Now all API logic is centralized in api.py
 
 # Global state similar to your original code
-games_list = []           # List of game records
-existing_game_ids = set() # To avoid duplicate games
-searched_titles = set()   # Track which titles have been searched
+existing_game_ids = set()  # To avoid duplicate games across sessions
+searched_titles = set()    # Track which titles have been searched
 
 # -----------------------
 # Worker Class for Searching
@@ -105,8 +104,6 @@ class GameSearchWindow(QMainWindow):
         self.resize(800, 500)
         self.games_list = []  # local storage of game records
         
-        # In GameSearchWindow.__init__:
-
         # Main layout
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -165,9 +162,8 @@ class GameSearchWindow(QMainWindow):
 
         self.search_history_list = QListWidget(self)
         self.search_history_list.setMinimumWidth(150)
-        # Let the list widget expand to use the available vertical space
         self.search_history_list.setSizePolicy(self.search_history_list.sizePolicy().horizontalPolicy(),
-                                            QSizePolicy.Expanding)
+                                              QSizePolicy.Expanding)
         right_column.addWidget(self.search_history_list)
 
         # Add left and right columns to the two-column layout
@@ -176,7 +172,6 @@ class GameSearchWindow(QMainWindow):
 
         main_layout.addLayout(content_layout)
 
-        # --- Continue with the rest of your layout as before ---
         # Progress bar and live count label remain underneath
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setMaximum(100)
@@ -202,15 +197,10 @@ class GameSearchWindow(QMainWindow):
 
         main_layout.addLayout(button_layout)
 
-
-
-        
     def get_selected_genre_ids(self):
-        """Return a list of selected genre IDs for query filtering."""
         selected_ids = []
         for genre, checkbox in self.genre_checkboxes.items():
             if checkbox.isChecked():
-                # Reverse lookup to get the id from GENRE_MAP
                 for id_, name in api.GENRE_MAP.items():
                     if name == genre:
                         selected_ids.append(id_)
@@ -218,7 +208,6 @@ class GameSearchWindow(QMainWindow):
         return selected_ids
     
     def get_selected_genre_names(self):
-        """Return a sorted list of selected genre names for display and duplicate checking."""
         selected_names = [genre for genre, checkbox in self.genre_checkboxes.items() if checkbox.isChecked()]
         selected_names.sort()
         return selected_names
@@ -229,7 +218,6 @@ class GameSearchWindow(QMainWindow):
             QMessageBox.warning(self, "Input Error", "Please enter a game title.")
             return
         
-        # Build a composite search key from the game title and selected genres
         selected_genre_names = self.get_selected_genre_names()
         if selected_genre_names:
             search_key = f"{game_title} | {','.join(selected_genre_names)}"
@@ -240,7 +228,6 @@ class GameSearchWindow(QMainWindow):
             QMessageBox.information(self, "Duplicate Search", f"Search for '{search_key}' has already been done.")
             return
         
-        # Disable buttons
         self.search_button.setEnabled(False)
         self.save_button.setEnabled(False)
         self.back_button.setEnabled(False)
@@ -258,15 +245,13 @@ class GameSearchWindow(QMainWindow):
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
-    
+
     def update_progress(self, current, total):
         progress = int((current / total) * 100)
         self.progress_bar.setValue(progress)
         self.live_count_label.setText(f"Unique Games Added: {len(existing_game_ids)}")
-    
+
     def search_finished(self, results, game_title):
-        global searched_titles
-        # Build the composite key again to store in searched_titles and display in history.
         selected_genre_names = self.get_selected_genre_names()
         if selected_genre_names:
             search_key = f"{game_title} | {','.join(selected_genre_names)}"
@@ -304,18 +289,24 @@ class GameSearchWindow(QMainWindow):
                 QMessageBox.information(self, "Success", f"File saved successfully to {file_path}")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"An error occurred while saving: {str(e)}")
-                
+
     def back_to_main(self):
+        # Clear previous searches and history when returning to main
+        global searched_titles, existing_game_ids
+        searched_titles.clear()
+        existing_game_ids.clear()
+
         from main import MainWindow
         global main_window
         main_window = MainWindow()
         main_window.show()
         self.close()
-        
+
 def load_stylesheet(file_path):
     with open(file_path, "r") as f:
         return f.read()
     
+
 def closeEvent(self, event):
     if hasattr(self, 'thread') and self.thread.isRunning():
         self.thread.quit()
