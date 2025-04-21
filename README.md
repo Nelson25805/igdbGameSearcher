@@ -78,19 +78,6 @@ IGDB Game Searcher is a desktop application that allows you to search for games 
 
 The project is built using Python and PyQt5, with a polished dark theme (via qdarkstyle) and a custom external stylesheet for UI sizing and spacing.
 
-## Examples:
-
-### Filtered Game Search:
-![Project Name Screen Shot][project-screenshot2]
-
-This page allows you to search for games with the selected filters, and afterwards save results to a coresponding excel file.
-
-
-### Random Game Search:
-![Project Name Screen Shot][project-screenshot3]
-
-This page allows you to search for a random game in the IGDB database, giving you related information about said game if it's available.
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -148,14 +135,19 @@ To start, you have two options of using this software.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+### Filtered Game Search:
+![Project Name Screen Shot][project-screenshot2]
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+This page allows you to search for games with the selected filters, and afterwards save results to a coresponding excel file.
+
+
+### Random Game Search:
+![Project Name Screen Shot][project-screenshot3]
+
+This page allows you to search for a random game in the IGDB database, giving you related information about said game if it's available.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -238,8 +230,8 @@ Project Link: [https://github.com/Nelson25805/igdbGameInfo](https://github.com/N
 [project-Image]: GithubImages/projectImage.png
 
 [project-screenshot]: GithubImages/mainScreen.png
-[project-screenshot2]: GithubImages/filteredSearchPage.png
-[project-screenshot3]: GithubImages/randomPage.png
+[project-screenshot2]: GithubImages/filteredGameSearch.gif
+[project-screenshot3]: GithubImages/randomGameSearch.gif
 
 [project-screenshot4]: GithubImages/excelExample.png
 [project-screenshot5]: GithubImages/envExample.png
