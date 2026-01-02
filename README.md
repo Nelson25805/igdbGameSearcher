@@ -26,7 +26,6 @@
 <h3 align="center">IGDB Game Searcher</h3>
 
 
-
   <p align="center">
     An application to search for games using the IGDB API.
     <br />
@@ -64,7 +63,6 @@
     <li><a href="#contact">Contact</a></li>
   </ol>
 </details>
-
 
 
 <!-- ABOUT THE PROJECT -->
@@ -251,3 +249,4 @@ Project Link: [https://github.com/Nelson25805/igdbGameInfo](https://github.com/N
 
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
+
