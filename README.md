@@ -79,7 +79,7 @@ The project is built using Python and PyQt5, with a polished dark theme (via qda
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-  ### Built With
+## Built With
 
 | Badge | Description |
 |:-----:|-------------|
@@ -100,7 +100,7 @@ To start, you have two options of using this software.
 1) Run the .exe file
 2) Run the python code script manually
 
-### Installation
+## Installation
 
 1. Clone the repo
    ```sh
@@ -136,13 +136,13 @@ To start, you have two options of using this software.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-### Filtered Game Search:
+## Filtered Game Search:
 ![Project Name Screen Shot][project-screenshot2]
 
 This page allows you to search for games with the selected filters, and afterwards save results to a coresponding excel file.
 
 
-### Random Game Search:
+## Random Game Search:
 ![Project Name Screen Shot][project-screenshot3]
 
 This page allows you to search for a random game in the IGDB database, giving you related information about said game if it's available.
@@ -165,8 +165,6 @@ See the [open issues](https://github.com/Nelson25805/igdbGameInfo/issues) for a 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 -->
 
-
-
 <!-- CONTRIBUTING -->
 ## Contributing
 
@@ -183,12 +181,11 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Top contributors:
+## Top contributors:
 
 <a href="https://github.com/Nelson25805/igdbGameInfo/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Nelson25805/igdbGameInfo" alt="contrib.rocks image" />
 </a>
-
 
 
 <!-- LICENSE -->
@@ -197,7 +194,6 @@ Don't forget to give the project a star! Thanks again!
 Distributed under the project_license. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- CONTACT -->
@@ -249,4 +245,5 @@ Project Link: [https://github.com/Nelson25805/igdbGameInfo](https://github.com/N
 
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
+
 
